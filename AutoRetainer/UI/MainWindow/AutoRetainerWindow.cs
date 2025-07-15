@@ -101,6 +101,7 @@ internal unsafe class AutoRetainerWindow : Window
                 .TextWrapped("4. 永远不要回应那些试图通过交易或聊天进行所谓'机器人检测'的玩家；应立即将这些玩家加入黑名单；")
                 .TextWrapped("5. 如果被GM询问，始终声称所有操作都是手动完成的，绝不承认使用插件。")
                 .TextWrapped("违反这些规则可能导致您的账号受到处罚。")
+                .TextWrapped(GradientColor.Get(ImGuiColors.DalamudYellow, ImGuiColors.DalamudRed), "您不得将 AutoRetainer 用于RMT行为或其他商业用途。如果您将其用于上述用途，我们将不提供任何支持。")
                 .Widget(() =>
                 {
                     if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "接受并继续"))

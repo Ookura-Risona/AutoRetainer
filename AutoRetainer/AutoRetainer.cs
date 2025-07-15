@@ -167,6 +167,7 @@ public unsafe class AutoRetainer : IDalamudPlugin
             /autoretainer itemsell - 开始向NPC或雇员出售物品（如果可能）
             /autoretainer het - 进入附近的自家房屋或公寓（如果可能）
             /autoretainer reset - 重置所有待处理任务
+            /autoretainer deliver - deliver expert delivery items
             """);
         EzCmd.Add("/ays", CommandHandler);
         Svc.Toasts.ErrorToast += Toasts_ErrorToast;
@@ -282,6 +283,41 @@ public unsafe class AutoRetainer : IDalamudPlugin
                 }
             }
         }
+        else if(arguments.EqualsIgnoreCaseAny("n", "night"))
+        {
+            C.NightMode = !C.NightMode;
+            DuoLog.Information($"Night mode {(C.NightMode ? "enabled" : "disabled")}");
+            if(C.NightMode)
+            {
+                if(!MultiMode.Enabled)
+                {
+                    MultiMode.Enabled = true;
+                    MultiMode.OnMultiModeEnabled();
+                }
+            }
+        }
+        else if(arguments.StartsWithAny(StringComparison.OrdinalIgnoreCase, "n ", "night "))
+        {
+            var arg2 = arguments.Split(" ")[1];
+            if(arg2.EqualsIgnoreCaseAny("d", "disable"))
+            {
+                C.NightMode = false;
+            }
+            else if(arg2.EqualsIgnoreCaseAny("e", "enable"))
+            {
+                C.NightMode = true;
+                if(!MultiMode.Enabled)
+                {
+                    MultiMode.Enabled = true;
+                    MultiMode.OnMultiModeEnabled();
+                }
+            }
+            else if(arg2.EqualsIgnoreCaseAny("s", "set"))
+            {
+                C.NightMode = true;
+            }
+            DuoLog.Information($"Night mode {(C.NightMode ? "enabled" : "disabled")}");
+        }
         else if(arguments.EqualsIgnoreCaseAny("s", "settings"))
         {
             S.NeoWindow.IsOpen = true;
@@ -321,19 +357,15 @@ public unsafe class AutoRetainer : IDalamudPlugin
                 TaskNeoHET.Enqueue(() => DuoLog.Error("Failed to find suitable house"), true);
             }
         }
-        else if(arguments.EqualsIgnoreCaseAny("deliver"))
-        {
-            GCContinuation.EnableDeliveringIfPossible();
-        }
         else if(arguments.EqualsIgnoreCaseAny("itemsell"))
         {
             if(!IsOccupied() && !P.TaskManager.IsBusy)
             {
-                if(NpcSaleManager.GetValidNPC() != null && C.IMEnableNpcSell)
+                if(NpcSaleManager.GetValidNPC() != null && Data.GetIMSettings().IMEnableNpcSell)
                 {
                     NpcSaleManager.EnqueueIfItemsPresent(true);
                 }
-                else if(C.IMEnableAutoVendor && Utils.GetReachableRetainerBell(true) != null && Player.IsInHomeWorld)
+                else if(Data.GetIMSettings().IMEnableAutoVendor && Utils.GetReachableRetainerBell(true) != null && Player.IsInHomeWorld)
                 {
                     P.SkipNextEnable = true;
                     TaskInteractWithNearestBell.Enqueue(true);
@@ -389,23 +421,24 @@ public unsafe class AutoRetainer : IDalamudPlugin
         }
         else if(arguments.StartsWith("modifySoftVendorList"))
         {
-            if(int.TryParse(arguments.Split(" ")[1], out var num))
+            var s = Data?.GetIMSettings();
+            if(s != null && int.TryParse(arguments.Split(" ")[1], out var num))
             {
                 if(num > 0)
                 {
                     var id = (uint)num;
-                    if(!C.IMAutoVendorSoft.Contains(id))
+                    if(!s.IMAutoVendorSoft.Contains(id))
                     {
-                        C.IMAutoVendorSoft.Add(id);
+                        s.IMAutoVendorSoft.Add(id);
                         PluginLog.Warning($"External addition to soft vendor list: {ExcelItemHelper.GetName(id)}");
                     }
                 }
                 else if(num < 0)
                 {
                     var id = (uint)-num;
-                    if(C.IMAutoVendorSoft.Contains(id))
+                    if(s.IMAutoVendorSoft.Contains(id))
                     {
-                        C.IMAutoVendorSoft.Remove(id);
+                        s.IMAutoVendorSoft.Remove(id);
                         PluginLog.Warning($"External removal from soft vendor list: {ExcelItemHelper.GetName(id)}");
                     }
                 }
@@ -416,6 +449,10 @@ public unsafe class AutoRetainer : IDalamudPlugin
             P.TaskManager.Abort();
             SchedulerMain.CharacterPostProcessLocked = false;
             Notify.Success("Reset completed");
+        }
+        else if(arguments.EqualsIgnoreCase("deliver"))
+        {
+            TaskDeliverItems.Enqueue();
         }
         else if(arguments.StartsWith("set"))
         {

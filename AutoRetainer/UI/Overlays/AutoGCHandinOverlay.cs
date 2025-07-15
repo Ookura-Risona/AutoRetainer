@@ -20,8 +20,6 @@ internal unsafe class AutoGCHandinOverlay : Window
         if(Allowed)
         {
             ImGui.Checkbox("启用自动筹备稀有品", ref AutoGCHandin.Operation);
-            ImGui.SameLine();
-            ImGui.Checkbox("连续交纳", ref C.AutoGCContinuation);
         }
         if(C.OfflineData.TryGetFirst(x => x.CID == Svc.ClientState.LocalContentId, out var d) && !AutoGCHandin.Operation)
         {

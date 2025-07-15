@@ -36,6 +36,9 @@ internal unsafe class Memory : IDisposable
     public nint* MyAccountData = (nint*)Svc.SigScanner.GetStaticAddressFromSig("48 8B 3D ?? ?? ?? ?? 48 85 FF 74 69");
     public ulong* MyAccountId => (ulong*)(*MyAccountData + 8);
 
+    public delegate nint AddonGrandCompanySupplyList_SetExchangeModeDelegate(nint addon, int mode);
+    public AddonGrandCompanySupplyList_SetExchangeModeDelegate AddonGrandCompanySupplyList_SetExchangeMode = EzDelegate.Get<AddonGrandCompanySupplyList_SetExchangeModeDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 8B D6 48 8D 4D F7");
+
     internal bool IsGatheringItemGathered(uint item)
     {
         return GetIsGatheringItemGathered((ushort)item) != 0;
@@ -130,7 +133,7 @@ internal unsafe class Memory : IDisposable
             var slotPtr = InventoryManager.Instance()->GetInventoryContainer(type)->GetInventorySlot(slot);
             if(slotPtr->ItemId != 0)
             {
-                if(C.IMProtectList.Contains(slotPtr->ItemId)) throw new InvalidOperationException($"Attempted to sell protected item: {ExcelItemHelper.GetName(slotPtr->ItemId)}");
+                if(Data.GetIMSettings().IMProtectList.Contains(slotPtr->ItemId)) throw new InvalidOperationException($"Attempted to sell protected item: {ExcelItemHelper.GetName(slotPtr->ItemId)}");
                 SellItemDetour((uint)slot, type, 0);
             }
             else

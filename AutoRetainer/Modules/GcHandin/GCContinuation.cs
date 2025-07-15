@@ -5,6 +5,7 @@ using ECommons.Automation.NeoTaskManager;
 using ECommons.Automation.NeoTaskManager.Tasks;
 using ECommons.Automation.UIInput;
 using ECommons.ExcelServices;
+using ECommons.ExcelServices.Sheets;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.MathHelpers;
@@ -31,16 +32,19 @@ internal static unsafe class GCContinuation
     public static bool DebugMode = false;
     public static bool DebugConf = false;
 
-    public static void EnqueueInitiation()
+    public static void EnqueueInitiation(bool redeliver)
     {
         P.TaskManager.Enqueue(GCContinuation.WaitUntilNotOccupied);
         P.TaskManager.Enqueue(GCContinuation.InteractWithShop);
         P.TaskManager.Enqueue(BeginNewPurchase);
         P.TaskManager.Enqueue(GCContinuation.WaitUntilNotOccupied);
-        P.TaskManager.Enqueue(GCContinuation.InteractWithExchange);
-        P.TaskManager.Enqueue(GCContinuation.SelectProvisioningMission);
-        P.TaskManager.Enqueue(() => GCContinuation.SelectSupplyListTab(2), "SelectSupplyListTab(2)");
-        P.TaskManager.Enqueue(GCContinuation.EnableDeliveringIfPossible);
+        if(redeliver)
+        {
+            P.TaskManager.Enqueue(GCContinuation.InteractWithExchange);
+            P.TaskManager.Enqueue(GCContinuation.SelectProvisioningMission);
+            P.TaskManager.Enqueue(() => GCContinuation.SelectSupplyListTab(2), "SelectSupplyListTab(2)");
+            P.TaskManager.Enqueue(GCContinuation.EnableDeliveringIfPossible);
+        }
     }
 
     public static void EnqueueDeliveryClose()
@@ -85,7 +89,7 @@ internal static unsafe class GCContinuation
     internal static bool? ConfirmExchange()
     {
         {
-            var x = Utils.GetSpecificYesno(x => x.Contains("You cannot currently equip this item"));
+            var x = Utils.GetSpecificYesno(x => x.RemoveWhitespaces().EqualsIgnoreCaseAny(Svc.Data.GetExcelSheet<Addon>().GetRow(2436).Text.GetText().RemoveWhitespaces(), Svc.Data.GetExcelSheet<Addon>().GetRow(11502).Text.GetText().RemoveWhitespaces()));
             if(x != null && FrameThrottler.Throttle("ConfirmCannotEquip", 4))
             {
                 new AddonMaster.SelectYesno((nint)x).Yes();
@@ -93,7 +97,7 @@ internal static unsafe class GCContinuation
             }
         }
         {
-            var x = Utils.GetSpecificYesno(x => x.Contains("Exchange"));
+            var x = Utils.GetSpecificYesno(x => x.ContainsAny(StringComparison.OrdinalIgnoreCase, Lang.GCSealExchangeConfirm));
             if(x != null && EzThrottler.Throttle("GC ConfirmExchange"))
             {
                 new AddonMaster.SelectYesno((nint)x).Yes();
@@ -180,7 +184,7 @@ internal static unsafe class GCContinuation
     {
         if(TryGetAddonByName<AddonSelectString>("SelectString", out var addon) && IsAddonReady(&addon->AtkUnitBase))
         {
-            if(EzThrottler.Throttle("SelectProvisioningMission") && Utils.TrySelectSpecificEntry("Undertake supply and provisioning missions."))
+            if(EzThrottler.Throttle("SelectProvisioningMission") && Utils.TrySelectSpecificEntry(Svc.Data.GetExcelSheet<QuestDialogueText>(name: "custom/000/ComDefGrandCompanyOfficer_00073").GetRow(69).Value.GetText()))
             {
                 return true;
             }
@@ -255,8 +259,20 @@ internal static unsafe class GCContinuation
         return false;
     }
 
+    public static uint GetAdjustedSeals()
+    {
+        var plan = Utils.GetGCExchangePlanWithOverrides();
+        return (uint)Math.Max(0, AutoGCHandin.GetSeals() - Math.Min(plan.RemainingSeals, AutoGCHandin.GetMaxSeals() - 20000));
+    }
+
+    public static uint GetAdjustedMaxSeals()
+    {
+        return (uint)(AutoGCHandin.GetMaxSeals() - Utils.GetGCExchangePlanWithOverrides().RemainingSeals);
+    }
+
     internal static bool? OpenSeals()
     {
+        
         if(TryGetAddonByName<AtkUnitBase>("GrandCompanyExchange", out var addon) && IsAddonReady(addon) && AutoGCHandin.IsValidGCTerritory())
         {
             var reader = new ReaderGrandCompanyExchange(addon);
@@ -266,7 +282,7 @@ internal static unsafe class GCContinuation
                 if(itemInfo.ItemID == 21072)
                 {
                     var currentRank = AutoGCHandin.GetRank();
-                    if(currentRank >= itemInfo.RankReq && AutoGCHandin.GetSeals() >= itemInfo.Seals)
+                    if(currentRank >= itemInfo.RankReq && GetAdjustedSeals() >= itemInfo.Seals)
                     {
                         if(FrameThrottler.Throttle("GCCont.OpenItem", 20))
                         {
@@ -280,54 +296,29 @@ internal static unsafe class GCContinuation
         return false;
     }
 
-    internal static bool? SelectGCPurchaseItem(int which)
-    {
-        if(TryGetAddonByName<AtkUnitBase>("GrandCompanyExchange", out var addon) && IsAddonReady(addon) && AutoGCHandin.IsValidGCTerritory())
-        {
-            var reader = new ReaderGrandCompanyExchange(addon);
-            if(which < reader.ItemCount)
-            {
-                for(var i = 0; i < reader.Items.Count; i++)
-                {
-                    var itemInfo = reader.Items[i];
-                    if(itemInfo.ItemID == 21072)
-                    {
-                        var currentRank = AutoGCHandin.GetRank();
-                        if(currentRank >= itemInfo.RankReq && AutoGCHandin.GetSeals() >= itemInfo.Seals)
-                        {
-                            if(FrameThrottler.Throttle("GCCont.SelectGCPurchaseItem", 20))
-                            {
-
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    public static uint GetAmountThatCanBePurchased(this ItemWithQuantity item)
+    public static uint GetAmountThatCanBePurchased(this GCExchangeItem item)
     {
         var meta = Utils.GetCurrentlyAvailableSharedExchangeListings().SafeSelect(item.ItemID);
         if(meta == null) return 0;
         if(AutoGCHandin.GetRank() < meta.MinPurchaseRank) return 0;
-        if(AutoGCHandin.GetSeals() < meta.Seals) return 0;
+        if(GetAdjustedSeals() < meta.Seals) return 0;
+
         var cnt = InventoryManager.Instance()->GetInventoryItemCount(meta.ItemID);
-        var targetQuantity = item.Quantity - cnt;
+
+        var targetQuantity = item.QuantitySingleTime == 0? item.Quantity - cnt : item.QuantitySingleTime;
         if(targetQuantity <= 0) return 0;
         if(meta.ItemID == VentureItem)
         {
             var canBuy = (uint)(65000 - InventoryManager.Instance()->GetInventoryItemCount(VentureItem));
             return (uint)Math.Min(canBuy, targetQuantity);
         }
+
         var canFit = Utils.GetAmountThatCanFit(Utils.PlayerInvetories, meta.ItemID, false, out _);
         if(canFit == 0) return 0;
         canFit = Math.Min(canFit, (uint)targetQuantity);
         canFit = Math.Min(canFit, 99);
         canFit = Math.Min(canFit, meta.Data.StackSize);
-        canFit = Math.Min(canFit, AutoGCHandin.GetSeals() / meta.Seals);
+        canFit = Math.Min(canFit, GetAdjustedSeals() / meta.Seals);
         if(meta.Data.IsUnique)
         {
             canFit = Math.Min(canFit, 1);
@@ -336,7 +327,7 @@ internal static unsafe class GCContinuation
         return canFit;
     }
 
-    public static bool PurchaseItem(this ItemWithQuantity item)
+    public static bool PurchaseItem(this GCExchangeItem item)
     {
         var meta = Utils.GetCurrentlyAvailableSharedExchangeListings()[item.ItemID];
         var amount = item.GetAmountThatCanBePurchased();
@@ -375,7 +366,7 @@ internal static unsafe class GCContinuation
                                 {
                                     DuoLog.Information($"Purchasing {i}'th item {itemInfo.Name} (venture)");
                                 }
-                                ContinuePurchase(meta, amount, currentSealsCount);
+                                ContinuePurchase(meta, amount, currentSealsCount, item);
                                 return true;
                             }
                         }
@@ -392,7 +383,7 @@ internal static unsafe class GCContinuation
                                 {
                                     DuoLog.Information($"Purchasing {i}'th item {itemInfo.Name}");
                                 }
-                                ContinuePurchase(meta, amount, currentSealsCount);
+                                ContinuePurchase(meta, amount, currentSealsCount, item);
                                 return true;
                             }
                         }
@@ -409,7 +400,7 @@ internal static unsafe class GCContinuation
         return false;
     }
 
-    public static void ContinuePurchase(this GCExchangeListingMetadata listing, uint itemCount, uint sealsCount)
+    public static void ContinuePurchase(this GCExchangeListingMetadata listing, uint itemCount, uint sealsCount, GCExchangeItem exchangeItem)
     {
         TaskManagerConfiguration conf = new(abortOnTimeout: false, timeLimitMS: 5000);
         List<TaskManagerTask> tasks = [];
@@ -420,6 +411,7 @@ internal static unsafe class GCContinuation
         }
         tasks.Add(new(ConfirmExchange, conf));
         tasks.Add(new(() => AutoGCHandin.GetSeals() < sealsCount, conf));
+        tasks.Add(new(() => exchangeItem.QuantitySingleTime = (int)Math.Max(0, exchangeItem.QuantitySingleTime - itemCount)));
         tasks.Add(new FrameDelayTask(4));
         tasks.Add(new(BeginNewPurchase));
         P.TaskManager.InsertMulti([.. tasks]);
@@ -438,10 +430,10 @@ internal static unsafe class GCContinuation
         }
     }
 
-    public static ItemWithQuantity GetNextPurchaseListing()
+    public static GCExchangeItem GetNextPurchaseListing()
     {
-        List<ItemWithQuantity> items = [.. C.DefaultGCExchangePlan.Items];
-        if((double)AutoGCHandin.GetSeals() / (double)AutoGCHandin.GetMaxSeals() > 0.5f)
+        List<GCExchangeItem> items = [.. Utils.GetGCExchangePlanWithOverrides().Items];
+        if((double)GetAdjustedSeals() / (double)GetAdjustedMaxSeals() > 0.5f || items.Count == 0)
         {
             items.Add(new(VentureItem, 65000));
         }

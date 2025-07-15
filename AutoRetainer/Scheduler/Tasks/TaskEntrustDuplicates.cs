@@ -27,6 +27,7 @@ internal static unsafe class TaskEntrustDuplicates
     {
         try
         {
+            var s = Data.GetIMSettings();
             var allowedPlayerInventories = plan.GetAllowedInventories();
             if(TryGetAddonByName<AtkUnitBase>("InputNumeric", out var numeric))
             {
@@ -36,7 +37,7 @@ internal static unsafe class TaskEntrustDuplicates
                     var result = Math.Clamp(RequestEntrustQuantity, 1, maxAmount);
                     if(EzThrottler.Throttle("EntrustItemInputNumeric", 200))
                     {
-                        PluginLog.Information($"Processing input numeric: {result} (max: {maxAmount})");
+                        InternalLog.Information($"Processing input numeric: {result} (max: {maxAmount})");
                         Callback.Fire(numeric, true, (int)result);
                     }
                 }
@@ -52,13 +53,13 @@ internal static unsafe class TaskEntrustDuplicates
                 foreach(var x in plan.EntrustItems)
                 {
                     var add = (x, plan.EntrustItemsAmountToKeep.SafeSelect(x));
-                    if(plan.ExcludeProtected && C.IMProtectList.Contains(add.Item1)) continue;
+                    if(plan.ExcludeProtected && s.IMProtectList.Contains(add.Item1)) continue;
                     itemList.Add(add);
-                    PluginLog.Debug($"[TED] From EntrustItems added item: {ExcelItemHelper.GetName(add.Item1, true)} toKeep={add.Item2}");
+                    InternalLog.Debug($"[TED] From EntrustItems added item: {ExcelItemHelper.GetName(add.Item1, true)} toKeep={add.Item2}");
                 }
                 foreach(var x in Utils.GetItemsInInventory(allowedPlayerInventories))
                 {
-                    if(plan.ExcludeProtected && C.IMProtectList.Contains(x)) continue;
+                    if(plan.ExcludeProtected && s.IMProtectList.Contains(x)) continue;
                     var item = ExcelItemHelper.Get(x);
                     if(item == null) continue;
                     if(itemList.Any(s => s.ItemID == item?.RowId)) continue;
@@ -66,7 +67,7 @@ internal static unsafe class TaskEntrustDuplicates
                     {
                         var add = (item.Value.RowId, info.AmountToKeep);
                         itemList.Add(add);
-                        PluginLog.Debug($"[TED] From EntrustCategories added item: {ExcelItemHelper.GetName(add.Item1, true)} toKeep={add.Item2}");
+                        InternalLog.Debug($"[TED] From EntrustCategories added item: {ExcelItemHelper.GetName(add.Item1, true)} toKeep={add.Item2}");
                     }
                 }
                 if(plan.Duplicates && plan.DuplicatesMultiStack)
@@ -80,11 +81,11 @@ internal static unsafe class TaskEntrustDuplicates
                             var item = InventoryManager.Instance()->GetInventorySlot(type, i);
                             if(item->ItemId != 0 && item->Quantity > 0)
                             {
-                                if(plan.ExcludeProtected && C.IMProtectList.Contains(item->ItemId)) continue;
+                                if(plan.ExcludeProtected && s.IMProtectList.Contains(item->ItemId)) continue;
                                 if(itemList.Any(s => s.ItemID == item->ItemId)) continue;
                                 var data = ExcelItemHelper.Get(item->ItemId);
                                 itemList.Add((item->ItemId, 0));
-                                PluginLog.Debug($"[TED] From retainer multistack duplicate added: {ExcelItemHelper.GetName(item->ItemId, true)}");
+                                InternalLog.Debug($"[TED] From retainer multistack duplicate added: {ExcelItemHelper.GetName(item->ItemId, true)}");
                             }
                         }
                     }
@@ -98,16 +99,16 @@ internal static unsafe class TaskEntrustDuplicates
                         var item = InventoryManager.Instance()->GetInventorySlot(type, i);
                         if(item->ItemId != 0 && item->Quantity > 0)
                         {
-                            if(plan.ExcludeProtected && C.IMProtectList.Contains(item->ItemId)) continue;
+                            if(plan.ExcludeProtected && s.IMProtectList.Contains(item->ItemId)) continue;
                             var itemCount = Utils.GetItemCount(allowedPlayerInventories, item->ItemId);
-                            PluginLog.Debug($"[TED] Item count for {ExcelItemHelper.GetName(item->ItemId, true)} = {itemCount}");
+                            InternalLog.Debug($"[TED] Item count for {ExcelItemHelper.GetName(item->ItemId, true)} = {itemCount}");
                             var data = ExcelItemHelper.Get(item->ItemId);
                             if(itemList.TryGetFirst(s => s.ItemID == item->ItemId, out var entrustInfo))
                             {
                                 var toKeep = entrustInfo.ToKeep;
                                 var toEntrust = itemCount - toKeep;
                                 var canFit = Utils.GetAmountThatCanFit(Utils.RetainerInventoriesWithCrystals, item->ItemId, item->Flags.HasFlag(InventoryItem.ItemFlags.HighQuality), out var debugData);
-                                PluginLog.Debug($"[TED] For {ExcelItemHelper.GetName(item->ItemId, true)} toEntrust={toEntrust}, toKeep={toKeep}, canFit={canFit}\n{debugData.Print("\n")}");
+                                InternalLog.Debug($"[TED] For {ExcelItemHelper.GetName(item->ItemId, true)} toEntrust={toEntrust}, toKeep={toKeep}, canFit={canFit}\n{debugData.Print("\n")}");
                                 if(toEntrust > canFit) toEntrust = (int)canFit;
                                 if(toEntrust > 0)
                                 {
@@ -133,7 +134,7 @@ internal static unsafe class TaskEntrustDuplicates
                         for(var i = 0; i < inv->Size; i++)
                         {
                             var item = inv->GetInventorySlot(i);
-                            if(plan.ExcludeProtected && C.IMProtectList.Contains(item->ItemId)) continue;
+                            if(plan.ExcludeProtected && s.IMProtectList.Contains(item->ItemId)) continue;
                             if(item->ItemId != 0 && !itemList.Any(s => s.ItemID == item->ItemId))
                             {
                                 var data = ExcelItemHelper.Get(item->ItemId);
@@ -199,7 +200,7 @@ internal static unsafe class TaskEntrustDuplicates
                 RequestEntrustQuantity = (int)toEntrustFromStack;
                 CapturedInventoryState = Utils.GetCapturedInventoryState(allowedPlayerInventories);
                 EzThrottler.Throttle("InventoryTimeout", 5000, true);
-                PluginLog.Debug($"Entrusting crystals from slot: {i}/{type} - {ExcelItemHelper.GetName(slot->ItemId, true)} quantuity = {toEntrustFromStack}");
+                InternalLog.Debug($"Entrusting crystals from slot: {i}/{type} - {ExcelItemHelper.GetName(slot->ItemId, true)} quantuity = {toEntrustFromStack}");
                 printToChat();
                 P.Memory.RetainerItemCommandDetour(InventorySpaceManager.AgentRetainerItemCommandModule, (uint)i, type, 0, RetainerItemCommand.EntrustToRetainer);
             }
@@ -209,7 +210,7 @@ internal static unsafe class TaskEntrustDuplicates
                 {
                     CapturedInventoryState = Utils.GetCapturedInventoryState(allowedPlayerInventories);
                     EzThrottler.Throttle("InventoryTimeout", 5000, true);
-                    PluginLog.Debug($"Entrusting from slot: {i}/{type} - {ExcelItemHelper.GetName(slot->ItemId, true)} quantuity = all");
+                    InternalLog.Debug($"Entrusting from slot: {i}/{type} - {ExcelItemHelper.GetName(slot->ItemId, true)} quantuity = all");
                     printToChat();
                     P.Memory.RetainerItemCommandDetour(InventorySpaceManager.AgentRetainerItemCommandModule, (uint)i, type, 0, RetainerItemCommand.EntrustToRetainer);
                 }
@@ -219,7 +220,7 @@ internal static unsafe class TaskEntrustDuplicates
                     RequestEntrustQuantity = (int)toEntrustFromStack;
                     CapturedInventoryState = Utils.GetCapturedInventoryState(allowedPlayerInventories);
                     EzThrottler.Throttle("InventoryTimeout", 5000, true);
-                    PluginLog.Debug($"Entrusting from slot: {i}/{type} - {ExcelItemHelper.GetName(slot->ItemId, true)} quantuity = {toEntrustFromStack}");
+                    InternalLog.Debug($"Entrusting from slot: {i}/{type} - {ExcelItemHelper.GetName(slot->ItemId, true)} quantuity = {toEntrustFromStack}");
                     printToChat();
                     P.Memory.RetainerItemCommandDetour(InventorySpaceManager.AgentRetainerItemCommandModule, (uint)i, type, 0, RetainerItemCommand.EntrustQuantity);
                 }

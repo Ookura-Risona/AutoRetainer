@@ -130,7 +130,7 @@ public static unsafe class TroubleshootingUI
             Warning("运行时的目标帧率设置过低(<20)，可能导致问题。");
         }
 
-        if(C.AllowSellFromArmory)
+        if(Data?.GetIMSettings().AllowSellFromArmory == true)
         {
             Info("已启用允许从装备兵装库出售物品选项。请确保将您的零式装备和绝境武器加入保护列表。");
         }
