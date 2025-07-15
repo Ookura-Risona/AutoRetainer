@@ -5,7 +5,7 @@ using RetainerDescriptor = (ulong CID, string RetainerName);
 namespace AutoRetainer.UI.NeoUI;
 public class RetainersTab : NeoUIEntry
 {
-    public override string Path => "Retainers";
+    public override string Path => "雇员管理";
     private int MassMinLevel = 0;
     private int MassMaxLevel = 100;
     private VenturePlan SelectedVenturePlan;
@@ -17,18 +17,18 @@ public class RetainersTab : NeoUIEntry
     public RetainersTab()
     {
         Builder = new NuiBuilder()
-                 .Section("Mass configuration change")
+                 .Section("批量配置更改")
                  .Widget(MassConfigurationChangeWidget);
     }
 
     private void MassConfigurationChangeWidget()
     {
-        ImGuiEx.Text("Select retainers:");
+        ImGuiEx.Text("选择雇员:");
         ImGuiEx.SetNextItemFullWidth();
-        if(ImGui.BeginCombo("##sel", $"Selected {SelectedRetainers.Count}", ImGuiComboFlags.HeightLarge))
+        if(ImGui.BeginCombo("##sel", $"已选择 {SelectedRetainers.Count}", ImGuiComboFlags.HeightLarge))
         {
             ref var search = ref Ref<string>.Get("Search");
-            ImGui.InputTextWithHint("##searchRetainers", "Character search", ref search, 100);
+            ImGui.InputTextWithHint("##searchRetainers", "搜索角色", ref search, 100);
             foreach(var x in C.OfflineData)
             {
                 if((search.Length > 0 && !(x.Name + "@" + x.World).Contains(search, StringComparison.OrdinalIgnoreCase)) || x.RetainerData.Count <= 0)
@@ -47,12 +47,12 @@ public class RetainersTab : NeoUIEntry
             }
             ImGui.EndCombo();
         }
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61527, "Deselect All"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61527, "全部取消选择"))
         {
             SelectedRetainers.Clear();
         }
         ImGui.SameLine();
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61525, "Select All"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61525, "全选所有雇员"))
         {
             SelectedRetainers.Clear();
             foreach(var x in C.OfflineData)
@@ -66,14 +66,14 @@ public class RetainersTab : NeoUIEntry
 
         ImGui.Separator();
 
-        ImGuiEx.TextV("By level:");
+        ImGuiEx.TextV("按等级:");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(100f);
         ImGui.DragInt("##minlevel", ref MassMinLevel, 0.1f);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(100f);
         ImGui.DragInt("##maxlevel", ref MassMaxLevel, 0.1f);
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61543, "Add retainers by level to selection"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61543, "按等级添加雇员到选择"))
         {
             foreach(var x in C.OfflineData)
             {
@@ -89,10 +89,10 @@ public class RetainersTab : NeoUIEntry
 
         ImGui.Separator();
 
-        ImGuiEx.Text("Actions:");
+        ImGuiEx.Text("操作:");
         ImGui.Separator();
         ImGui.SetNextItemWidth(150f);
-        if(ImGui.BeginCombo("##ventureplans", SelectedVenturePlan?.Name ?? "None selected", (ImGuiComboFlags)8))
+        if(ImGui.BeginCombo("##ventureplans", SelectedVenturePlan?.Name ?? "未选择计划", (ImGuiComboFlags)8))
         {
             foreach(var plan in C.SavedPlans)
             {
@@ -104,7 +104,7 @@ public class RetainersTab : NeoUIEntry
             ImGui.EndCombo();
         }
         ImGui.SameLine();
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)62073, "Enable planner with venture plan"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)62073, "启用探险计划"))
         {
             var num = 0;
             foreach(var x in SelectedRetainers)
@@ -119,13 +119,13 @@ public class RetainersTab : NeoUIEntry
                     num++;
                 }
             }
-            Notify.Success($"Affected {num} retainers");
+            Notify.Success($"已应用于 {num} 个雇员");
         }
 
         ImGui.Separator();
 
         ImGui.SetNextItemWidth(150f);
-        if(ImGui.BeginCombo("##entrustplans", SelectedEntrustPlan?.Name ?? "None selected", ImGuiComboFlags.HeightLarge))
+        if(ImGui.BeginCombo("##entrustplans", SelectedEntrustPlan?.Name ?? "未选择计划", ImGuiComboFlags.HeightLarge))
         {
             foreach(var plan in C.EntrustPlans)
             {
@@ -137,7 +137,7 @@ public class RetainersTab : NeoUIEntry
             ImGui.EndCombo();
         }
         ImGui.SameLine();
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)62566, "Set entrust plan"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)62566, "设置委托计划"))
         {
             var num = 0;
             foreach(var x in SelectedRetainers)
@@ -150,12 +150,12 @@ public class RetainersTab : NeoUIEntry
                     num++;
                 }
             }
-            Notify.Success($"Affected {num} retainers");
+            Notify.Success($"已应用于 {num} 个雇员");
         }
 
         ImGui.Separator();
 
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61526, "Remove entrust plan from selected retainers"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61526, "移除选定雇员的委托计划"))
         {
             var num = 0;
             foreach(var x in SelectedRetainers)
@@ -168,12 +168,12 @@ public class RetainersTab : NeoUIEntry
                     num++;
                 }
             }
-            Notify.Success($"Affected {num} retainers");
+            Notify.Success($"已应用于 {num} 个雇员");
         }
 
         ImGui.Separator();
 
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61526, "Disable venture planner for selected retainers"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61526, "禁用选定雇员的探险计划"))
         {
             var num = 0;
             foreach(var x in SelectedRetainers)
@@ -186,12 +186,12 @@ public class RetainersTab : NeoUIEntry
                     num++;
                 }
             }
-            Notify.Success($"Affected {num} retainers");
+            Notify.Success($"已应用于 {num} 个雇员");
         }
 
         ImGui.Separator();
 
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61452, "Enable selected retainers"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61452, "启用选定雇员"))
         {
             var num = 0;
             foreach(var x in SelectedRetainers)
@@ -200,12 +200,12 @@ public class RetainersTab : NeoUIEntry
                 retainers.Add(x.RetainerName);
                 num++;
             }
-            Notify.Success($"Affected {num} characters");
+            Notify.Success($"已应用于 {num} 个角色");
         }
 
         ImGui.Separator();
 
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61453, "Disable selected retainers"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61453, "禁用选定雇员"))
         {
             var num = 0;
             foreach(var x in SelectedRetainers)
@@ -214,12 +214,12 @@ public class RetainersTab : NeoUIEntry
                 retainers.Remove(x.RetainerName);
                 num++;
             }
-            Notify.Success($"Affected {num} characters");
+            Notify.Success($"已应用于 {num} 个角色");
         }
 
         ImGui.Separator();
 
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61528, "Enable retainer multi mode for owners of selected retainers"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61528, "启用选定雇员的多角色模式"))
         {
             var num = 0;
             foreach(var x in SelectedRetainers)
@@ -231,12 +231,12 @@ public class RetainersTab : NeoUIEntry
                     num++;
                 }
             }
-            Notify.Success($"Affected {num} characters");
+            Notify.Success($"已应用于 {num} 个角色");
         }
 
         ImGui.Separator();
 
-        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61527, "Disable retainer multi mode for owners of selected retainers"))
+        if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)61527, "禁用选定雇员的多人模式"))
         {
             var num = 0;
             foreach(var x in SelectedRetainers)
@@ -248,7 +248,7 @@ public class RetainersTab : NeoUIEntry
                     num++;
                 }
             }
-            Notify.Success($"Affected {num} characters");
+            Notify.Success($"已应用于 {num} 个角色");
         }
     }
 }

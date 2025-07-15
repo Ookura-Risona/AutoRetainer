@@ -11,7 +11,7 @@ public class CharaConfig
         SharedUI.DrawMultiModeHeader(data);
         var b = new NuiBuilder()
 
-        .Section("General Character Specific Settings")
+        .Section("通用角色特定设置")
         .Widget(() =>
         {
             SharedUI.DrawServiceAccSelector(data);
@@ -19,9 +19,9 @@ public class CharaConfig
         });
         if(isRetainer)
         {
-            b = b.Section("Retainers").Widget(() =>
+            b = b.Section("雇员").Widget(() =>
             {
-                ImGuiEx.Text($"Automatic Grand Company Expert Delivery:");
+                ImGuiEx.Text($"自动筹备稀有品:");
                 if(!AutoGCHandin.Operation)
                 {
                     ImGuiEx.SetNextItemWidthScaled(200f);
@@ -29,34 +29,34 @@ public class CharaConfig
                 }
                 else
                 {
-                    ImGuiEx.Text($"Can't change this now");
+                    ImGuiEx.Text($"当前无法更改此设置");
                 }
             });
         }
         else
         {
-            b = b.Section("Deployables").Widget(() =>
+            b = b.Section("远航探索").Widget(() =>
             {
-                ImGui.Checkbox($"Wait For All Pending Deployables", ref data.MultiWaitForAllDeployables);
-                ImGuiComponents.HelpMarker("Prevent processing this character until all enabled deployables have returned from their voyages.");
+                ImGui.Checkbox($"等待所有待处理远航探索", ref data.MultiWaitForAllDeployables);
+                ImGuiComponents.HelpMarker("在所有启用的远航探索返回前，阻止处理此角色");
             });
         }
-        b = b.Section("Teleport overrides", data.GetAreTeleportSettingsOverriden() ? ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg] with { X = 1f } : null, true)
+        b = b.Section("传送覆盖设置", data.GetAreTeleportSettingsOverriden() ? ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg] with { X = 1f } : null, true)
         .Widget(() =>
         {
-            ImGuiEx.Text($"You can override teleport settings per character.");
+            ImGuiEx.Text($"您可以为每个角色覆盖传送设置");
             bool? demo = null;
-            ImGuiEx.Checkbox("Options marked with this marker will use values from global configuration", ref demo);
-            ImGuiEx.Checkbox("Enabled", ref data.TeleportOptionsOverride.Enabled);
+            ImGuiEx.Checkbox("标记此图标的选项将使用全局配置中的值", ref demo);
+            ImGuiEx.Checkbox("启用", ref data.TeleportOptionsOverride.Enabled);
             ImGui.Indent();
-            ImGuiEx.Checkbox("Teleport for retainers...", ref data.TeleportOptionsOverride.Retainers);
+            ImGuiEx.Checkbox("为雇员传送...", ref data.TeleportOptionsOverride.Retainers);
             ImGui.Indent();
-            ImGuiEx.Checkbox("...to private house", ref data.TeleportOptionsOverride.RetainersPrivate);
-            ImGuiEx.Checkbox("...to free company house", ref data.TeleportOptionsOverride.RetainersFC);
-            ImGuiEx.Checkbox("...to apartment", ref data.TeleportOptionsOverride.RetainersApartment);
-            ImGui.Text("If all above are disabled or fail, will be teleported to inn.");
+            ImGuiEx.Checkbox("...到私人房屋", ref data.TeleportOptionsOverride.RetainersPrivate);
+            ImGuiEx.Checkbox("...到部队房屋", ref data.TeleportOptionsOverride.RetainersFC);
+            ImGuiEx.Checkbox("...到公寓", ref data.TeleportOptionsOverride.RetainersApartment);
+            ImGui.Text("如果以上所有选项都禁用或失败，将被传送到旅馆");
             ImGui.Unindent();
-            ImGuiEx.Checkbox("Teleport to free company house for deployables", ref data.TeleportOptionsOverride.Deployables);
+            ImGuiEx.Checkbox("为远航探索传送到部队房屋", ref data.TeleportOptionsOverride.Deployables);
             ImGui.Unindent();
             ImGuiGroup.EndGroupBox();
         }).Draw();

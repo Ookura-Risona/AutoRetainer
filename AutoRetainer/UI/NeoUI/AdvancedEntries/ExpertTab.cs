@@ -4,31 +4,31 @@ using ECommons.Reflection;
 namespace AutoRetainer.UI.NeoUI.AdvancedEntries;
 public class ExpertTab : NeoUIEntry
 {
-    public override string Path => "Advanced/Expert Settings";
+    public override string Path => "高级设置/专家设置";
 
     public override NuiBuilder Builder { get; init; } = new NuiBuilder()
-        .Section("Behavior")
-        .EnumComboFullWidth(null, "Action on accessing retainer bell if no ventures available:", () => ref C.OpenBellBehaviorNoVentures)
-        .EnumComboFullWidth(null, "Action on accessing retainer bell if any ventures available:", () => ref C.OpenBellBehaviorWithVentures)
-        .EnumComboFullWidth(null, "Task completion behavior after accessing bell:", () => ref C.TaskCompletedBehaviorAccess)
-        .EnumComboFullWidth(null, "Task completion behavior after manual enabling:", () => ref C.TaskCompletedBehaviorManual)
-        .EnumComboFullWidth(null, "Task completion behavior during plugin operation:", () => ref C.TaskCompletedBehaviorAuto)
-        .TextWrapped(ImGuiColors.DalamudGrey, "\"Close retainer list and disable plugin\" option for 3 previous settings is enforced during MultiMode operation.")
-        .Checkbox("Stay in retainer menu if there are retainers to finish ventures within 5 minutes or less", () => ref C.Stay5, "This option is enforced during MultiMode operation.")
-        .Checkbox($"Auto-disable plugin when closing retainer list", () => ref C.AutoDisable, "Only applies when you exit menu by yourself. Otherwise, settings above apply.")
-        .Checkbox($"Do not show plugin status icons", () => ref C.HideOverlayIcons)
-        .Checkbox($"Display multi mode type selector", () => ref C.DisplayMMType)
-        .Checkbox($"Display deployables checkbox in workshop", () => ref C.ShowDeployables)
-        .Checkbox("Enable bailout module", () => ref C.EnableBailout)
-        .InputInt(150f, "Timeout before AutoRetainer will attempt to unstuck, seconds", () => ref C.BailoutTimeout)
+        .Section("行为设置")
+        .EnumComboFullWidth(null, "无可用派遣任务时访问雇员铃的操作:", () => ref C.OpenBellBehaviorNoVentures)
+        .EnumComboFullWidth(null, "有可用派遣任务时访问雇员铃的操作:", () => ref C.OpenBellBehaviorWithVentures)
+        .EnumComboFullWidth(null, "访问雇员铃后任务完成行为:", () => ref C.TaskCompletedBehaviorAccess)
+        .EnumComboFullWidth(null, "手动启用后任务完成行为:", () => ref C.TaskCompletedBehaviorManual)
+        .EnumComboFullWidth(null, "插件运行期间任务完成行为:", () => ref C.TaskCompletedBehaviorAuto)
+        .TextWrapped(ImGuiColors.DalamudGrey, "多角色模式运行期间，上述3个设置中的\"关闭雇员列表并禁用插件\"选项将被强制启用。")
+        .Checkbox("如果5分钟内雇员有派遣任务完成，则停留在雇员菜单", () => ref C.Stay5, "此选项在多角色模式运行期间强制启用。")
+        .Checkbox($"关闭雇员列表时自动禁用插件", () => ref C.AutoDisable, "仅当您手动退出菜单时生效。其他情况下由上述设置控制。")
+        .Checkbox($"不显示插件状态图标", () => ref C.HideOverlayIcons)
+        .Checkbox($"显示多角色模式类型选择器", () => ref C.DisplayMMType)
+        .Checkbox($"在部队工房显示远航探索复选框", () => ref C.ShowDeployables)
+        .Checkbox("启用应急恢复模块", () => ref C.EnableBailout)
+        .InputInt(150f, "AutoRetainer尝试解除卡死前的超时时间(秒)", () => ref C.BailoutTimeout)
 
-        .Section("Settings")
-        .Checkbox($"Disable sorting and collapsing/expanding", () => ref C.NoCurrentCharaOnTop)
-        .Checkbox($"Show MultiMode checkbox on plugin UI bar", () => ref C.MultiModeUIBar)
-        .SliderIntAsFloat(100f, "Retainer menu delay, seconds", () => ref C.RetainerMenuDelay.ValidateRange(0, 2000), 0, 2000)
-        .Checkbox($"Allow venture timer to display negative values", () => ref C.TimerAllowNegative)
-        .Checkbox($"Do not error check venture planner", () => ref C.NoErrorCheckPlanner2)
-        .Widget("Market Cooldown Overlay", (x) =>
+        .Section("常规设置")
+        .Checkbox($"禁用排序和折叠/展开功能", () => ref C.NoCurrentCharaOnTop)
+        .Checkbox($"在插件UI栏显示多角色模式复选框", () => ref C.MultiModeUIBar)
+        .SliderIntAsFloat(100f, "雇员菜单延迟(秒)", () => ref C.RetainerMenuDelay.ValidateRange(0, 2000), 0, 2000)
+        .Checkbox($"允许派遣计时器显示负值", () => ref C.TimerAllowNegative)
+        .Checkbox($"不检查派遣计划错误", () => ref C.NoErrorCheckPlanner2)
+        .Widget("市场冷却状态覆盖", (x) =>
         {
             if(ImGui.Checkbox(x, ref C.MarketCooldownOverlay))
             {
@@ -43,14 +43,14 @@ public class ExpertTab : NeoUIEntry
             }
         })
 
-        .Section("Integrations")
-        .Checkbox($"Artisan integration", () => ref C.ArtisanIntegration, "Automatically enables AutoRetainer while Artisan is Pauses Artisan operation when ventures are ready to be collected and a retainer bell is within range. Once ventures have been dealt with Artisan will be enabled and resume whatever it was doing.")
+        .Section("整合功能")
+        .Checkbox($"Artisan 整合功能", () => ref C.ArtisanIntegration, "当派遣任务可收取且附近有雇员铃时，自动启用AutoRetainer并暂停Artisan操作。处理完派遣任务后，Artisan将恢复运行。")
 
-        .Section("Server Time")
-        .Checkbox("Use server time instead of PC time", () => ref C.UseServerTime)
+        .Section("服务器时间")
+        .Checkbox("使用服务器时间而非本地时间", () => ref C.UseServerTime)
 
-        .Section("Utility")
-        .Widget("Cleanup ghost retainers", (x) =>
+        .Section("实用工具")
+        .Widget("清理幽灵雇员", (x) =>
         {
             if(ImGui.Button(x))
             {
@@ -59,14 +59,14 @@ public class ExpertTab : NeoUIEntry
                 {
                     i += d.RetainerData.RemoveAll(x => x.Name == "");
                 }
-                DuoLog.Information($"Cleaned {i} entries");
+                DuoLog.Information($"已清理 {i} 个条目");
             }
         })
 
-        .Section("Import/Export")
+        .Section("导入/导出")
         .Widget(() =>
         {
-            if(ImGui.Button("Export without character data"))
+            if(ImGui.Button("导出不含角色数据的配置"))
             {
                 var clone = C.JSONClone();
                 clone.OfflineData = null;
@@ -77,7 +77,7 @@ public class ExpertTab : NeoUIEntry
                 clone.AutoLogin = "";
                 Copy(EzConfig.DefaultSerializationFactory.Serialize(clone, false));
             }
-            if(ImGui.Button("Import and merge with character data"))
+            if(ImGui.Button("导入并合并角色数据"))
             {
                 try
                 {

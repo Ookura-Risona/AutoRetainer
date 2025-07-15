@@ -39,7 +39,7 @@ public sealed class NeoWindow : Window
 
     internal ConfigFileSystem FileSystem;
 
-    public NeoWindow() : base("AutoRetainer Configuration")
+    public NeoWindow() : base("AutoRetainer 配置窗口")
     {
         P.WindowSystem.AddWindow(this);
         this.SetMinSize();

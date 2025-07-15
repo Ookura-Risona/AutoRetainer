@@ -2,10 +2,10 @@
     "Author": "кайт машина (Puni.sh)",
     "Name": "AutoRetainer",
     "InternalName": "AutoRetainer",
-    "Punchline": "Collect and assign ventures to your retainers from the comfort of your bed.",
-    "Description": "Collect and assign ventures to your retainers from the comfort of your bed.",
+    "Punchline": "在舒适的床上分配任务给你的雇员。",
+    "Description": "在舒适的床上分配任务给你的雇员。",
     "ApplicableVersion": "any",
-    "RepoUrl": "https://github.com/PunishXIV/AutoRetainer",
+    "RepoUrl": "https://github.com/Ookura-Risona/AutoRetainer",
     "DalamudApiLevel": 12,
     "LoadPriority": 0,
     "IconUrl": "https://s3.puni.sh/media/plugin/24/icon-drb6aywk5m9.png"

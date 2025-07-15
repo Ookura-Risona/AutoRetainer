@@ -21,7 +21,7 @@ internal unsafe class AutoRetainerWindow : Window
             Click = OnLockButtonClick,
             Icon = C.PinWindow ? FontAwesomeIcon.Lock : FontAwesomeIcon.LockOpen,
             IconOffset = new(3, 2),
-            ShowTooltip = () => ImGui.SetTooltip("Lock window position and size"),
+            ShowTooltip = () => ImGui.SetTooltip("锁定窗口位置和大小"),
         };
         SizeConstraints = new()
         {
@@ -35,7 +35,7 @@ internal unsafe class AutoRetainerWindow : Window
             Click = (m) => { if(m == ImGuiMouseButton.Left) S.NeoWindow.IsOpen = true; },
             Icon = FontAwesomeIcon.Cog,
             IconOffset = new(2, 2),
-            ShowTooltip = () => ImGui.SetTooltip("Open settings window"),
+            ShowTooltip = () => ImGui.SetTooltip("打开设置窗口"),
         });
         TitleBarButtons.Add(LockButton);
     }
@@ -67,23 +67,23 @@ internal unsafe class AutoRetainerWindow : Window
         {
             if(time.Days > 0)
             {
-                return $"Session expires in {time.Days} day{(time.Days == 1 ? "" : "s")}" + (time.Hours > 0 ? $" {time.Hours} hours" : "");
+                return $"会话将在 {time.Days} 天" + (time.Hours > 0 ? $" {time.Hours} 时 后过期" : "");
             }
             else
             {
                 if(time.Hours > 0)
                 {
-                    return $"Session expires in {time.Hours} hours";
+                    return $"会话将在 {time.Hours} 时后过期";
                 }
                 else
                 {
-                    return $"Session expires in less than an hour";
+                    return $"会话将在一个小时内过期";
                 }
             }
         }
         else
         {
-            return "Session expired";
+            return "会话已过期";
         }
     }
     public override void Draw()
@@ -92,18 +92,18 @@ internal unsafe class AutoRetainerWindow : Window
         if(!C.AcceptedDisclamer)
         {
             new NuiBuilder()
-                .Section("Disclaimer")
-                .TextWrapped(ImGuiColors.DalamudYellow, "Please note that using AutoRetainer for RMT purposes is strictly prohibited. ")
-                .TextWrapped(ImGuiColors.DalamudRed, "To avoid unnecessary consequences please follow these rules when using AutoRetainer:")
-                .TextWrapped("1. Do not acknowledge your use of AutoRetainer in game chat;")
-                .TextWrapped("2. Do not leave AutoRetainer unattended for prolonged period of time;")
-                .TextWrapped("3. Ensure that your total playing+AutoRetainer usage time does not exceeds 16 hours per day; ensure that periods of inactivity exist between your retainer/submersible checking routine;")
-                .TextWrapped("4. Never reply back to players that are trying to do so-called bot checks by trading or chatting with you; instead, blacklist these players immediately;")
-                .TextWrapped("5. If questioned by game master, always claim that you are doing all actions manually and never admit plugin usage.")
-                .TextWrapped("Failure to follow these rules may result in actions taken against your account.")
+                .Section("免责声明")
+                .TextWrapped(ImGuiColors.DalamudYellow, "请注意，严格禁止出于RMT目的使用AutoRetainer 。")
+                .TextWrapped(ImGuiColors.DalamudRed, "为避免不必要的后果，使用AutoRetainer时请遵守以下规则 :")
+                .TextWrapped("1. 不要在游戏聊天中提及您使用AutoRetainer ；")
+                .TextWrapped("2. 不要长时间无人值守地运行AutoRetainer ；")
+                .TextWrapped("3. 确保您的实际游戏+AutoRetainer使用时间每天不超过16小时；确保在雇员/潜艇检查流程之间存在非活动间隔；")
+                .TextWrapped("4. 永远不要回应那些试图通过交易或聊天进行所谓'机器人检测'的玩家；应立即将这些玩家加入黑名单；")
+                .TextWrapped("5. 如果被GM询问，始终声称所有操作都是手动完成的，绝不承认使用插件。")
+                .TextWrapped("违反这些规则可能导致您的账号受到处罚。")
                 .Widget(() =>
                 {
-                    if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "Accept and continue"))
+                    if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "接受并继续"))
                     {
                         C.AcceptedDisclamer = true;
                         EzConfig.Save();
@@ -119,7 +119,7 @@ internal unsafe class AutoRetainerWindow : Window
         {
             ImGui.BeginDisabled();
         }
-        if(ImGui.Checkbox($"Enable {P.Name}", ref e))
+        if(ImGui.Checkbox($"启用 {P.Name}", ref e))
         {
             P.WasEnabled = false;
             if(e)
@@ -134,29 +134,29 @@ internal unsafe class AutoRetainerWindow : Window
         if(C.ShowDeployables && (VoyageUtils.Workshops.Contains(Svc.ClientState.TerritoryType) || VoyageScheduler.Enabled))
         {
             ImGui.SameLine();
-            ImGui.Checkbox($"Deployables", ref VoyageScheduler.Enabled);
+            ImGui.Checkbox($"远航探索", ref VoyageScheduler.Enabled);
         }
         if(disabled)
         {
             ImGui.EndDisabled();
-            ImGuiComponents.HelpMarker($"MultiMode controls this option. Hold CTRL to override.");
+            ImGuiComponents.HelpMarker($"此选项由多角色模式控制。按住CTRL可覆盖。");
         }
 
         if(P.WasEnabled)
         {
             ImGui.SameLine();
-            ImGuiEx.Text(GradientColor.Get(ImGuiColors.DalamudGrey, ImGuiColors.DalamudGrey3, 500), $"Paused");
+            ImGuiEx.Text(GradientColor.Get(ImGuiColors.DalamudGrey, ImGuiColors.DalamudGrey3, 500), $"已暂停");
         }
 
         ImGui.SameLine();
-        if(ImGui.Checkbox("Multi", ref MultiMode.Enabled))
+        if(ImGui.Checkbox("多角色", ref MultiMode.Enabled))
         {
             MultiMode.OnMultiModeEnabled();
         }
         if(C.ShowNightMode)
         {
             ImGui.SameLine();
-            if(ImGui.Checkbox("Night", ref C.NightMode))
+            if(ImGui.Checkbox("夜间模式", ref C.NightMode))
             {
                 MultiMode.BailoutNightMode();
             }
@@ -170,7 +170,7 @@ internal unsafe class AutoRetainerWindow : Window
         if(C.CharEqualize && MultiMode.Enabled)
         {
             ImGui.SameLine();
-            if(ImGui.Button("Reset counters"))
+            if(ImGui.Button("重置计数器"))
             {
                 MultiMode.CharaCnt.Clear();
             }
@@ -180,9 +180,9 @@ internal unsafe class AutoRetainerWindow : Window
 
         if(IPC.Suppressed)
         {
-            ImGuiEx.Text(ImGuiColors.DalamudRed, $"Plugin operation is suppressed by other plugin.");
+            ImGuiEx.Text(ImGuiColors.DalamudRed, $"插件操作已被其他插件停止。");
             ImGui.SameLine();
-            if(ImGui.SmallButton("Cancel"))
+            if(ImGui.SmallButton("取消"))
             {
                 IPC.Suppressed = false;
             }
@@ -191,19 +191,19 @@ internal unsafe class AutoRetainerWindow : Window
         if(P.TaskManager.IsBusy)
         {
             ImGui.SameLine();
-            if(ImGui.Button($"Abort {P.TaskManager.NumQueuedTasks} tasks"))
+            if(ImGui.Button($"中止 {P.TaskManager.NumQueuedTasks} 个任务"))
             {
                 P.TaskManager.Abort();
             }
         }
 
         PatreonBanner.DrawRight();
-        ImGuiEx.EzTabBar("tabbar", PatreonBanner.Text,
-                        ("Retainers", MultiModeUI.Draw, null, true),
-                        ("Deployables", WorkshopUI.Draw, null, true),
-                        ("Troubleshooting", TroubleshootingUI.Draw, null, true),
-                        ("Statistics", DrawStats, null, true),
-                        ("About", CustomAboutTab.Draw, null, true)
+        ImGuiEx.EzTabBar("标签栏", PatreonBanner.Text,
+                        ("雇员管理", MultiModeUI.Draw, null, true),
+                        ("远航探索", WorkshopUI.Draw, null, true),
+                        ("故障排除", TroubleshootingUI.Draw, null, true),
+                        ("统计信息", DrawStats, null, true),
+                        ("关于", CustomAboutTab.Draw, null, true)
                         );
         if(!C.PinWindow)
         {
@@ -214,7 +214,7 @@ internal unsafe class AutoRetainerWindow : Window
 
     private void DrawStats()
     {
-        NuiTools.ButtonTabs([[C.RecordStats ? new("Ventures", S.VentureStats.DrawVentures) : null, new("Gil", S.GilDisplay.Draw), new("FC Data", S.FCData.Draw)]]);
+        NuiTools.ButtonTabs([[C.RecordStats ? new("雇员派遣", S.VentureStats.DrawVentures) : null, new("金币", S.GilDisplay.Draw), new("部队数据", S.FCData.Draw)]]);
     }
 
     public override void OnClose()

@@ -12,10 +12,10 @@ namespace AutoRetainer.UI.Windows;
 internal unsafe class SubmarineUnlockPlanUI : Window
 {
     internal string SelectedPlanGuid = Guid.Empty.ToString();
-    internal string SelectedPlanName => VoyageUtils.GetSubmarineUnlockPlanByGuid(SelectedPlanGuid)?.Name ?? "No or unknown plan selected";
+    internal string SelectedPlanName => VoyageUtils.GetSubmarineUnlockPlanByGuid(SelectedPlanGuid)?.Name ?? "未选择或未知计划";
     internal SubmarineUnlockPlan SelectedPlan => VoyageUtils.GetSubmarineUnlockPlanByGuid(SelectedPlanGuid);
 
-    public SubmarineUnlockPlanUI() : base("Submersible Voyage Unlockable Planner")
+    public SubmarineUnlockPlanUI() : base("潜水艇航行解锁计划")
     {
         P.WindowSystem.AddWindow(this);
     }
@@ -96,10 +96,10 @@ internal unsafe class SubmarineUnlockPlanUI : Window
             }
         }, () =>
         {
-            if(ImGui.Button("New plan"))
+            if(ImGui.Button("新建计划"))
             {
                 var x = new SubmarineUnlockPlan();
-                x.Name = $"Plan {x.GUID}";
+                x.Name = $"计划 {x.GUID}";
                 C.SubmarineUnlockPlans.Add(x);
                 SelectedPlanGuid = x.GUID;
             }
@@ -107,7 +107,7 @@ internal unsafe class SubmarineUnlockPlanUI : Window
         ImGui.Separator();
         if(SelectedPlan == null)
         {
-            ImGuiEx.Text($"No or unknown plan is selected");
+            ImGuiEx.Text($"未选择或未知计划");
         }
         else
         {
@@ -119,66 +119,66 @@ internal unsafe class SubmarineUnlockPlanUI : Window
                 {
                     if(!my.Any())
                     {
-                        ImGuiEx.TextWrapped($"This plan is not used by any submersibles.");
+                        ImGuiEx.TextWrapped($"此计划未被任何潜水艇使用。");
                     }
                     else
                     {
-                        ImGuiEx.TextWrapped($"This plan is used by {my.Select(X => X.Key).Print()}.");
+                        ImGuiEx.TextWrapped($"此计划被以下潜水艇使用 {my.Select(X => X.Key).Print()}.");
                     }
                 }
                 else
                 {
                     if(!my.Any())
                     {
-                        ImGuiEx.TextWrapped($"This plan is used by {users} submersibles of your other characters.");
+                        ImGuiEx.TextWrapped($"此计划被您的其他角色的 {users} 艘潜水艇使用。");
                     }
                     else
                     {
-                        ImGuiEx.TextWrapped($"This plan is used by {my.Select(X => X.Key).Print()} and {users} more submersibles on other characters.");
+                        ImGuiEx.TextWrapped($"此计划被 {my.Select(X => X.Key).Print()} 以及您其他角色的 {users} 艘潜水艇使用。");
                     }
                 }
             }
             if(C.DefaultSubmarineUnlockPlan == SelectedPlanGuid)
             {
-                ImGuiEx.Text($"This plan is set as default.");
+                ImGuiEx.Text($"此计划已设为默认计划。");
                 ImGui.SameLine();
-                if(ImGui.SmallButton("Reset")) C.DefaultSubmarineUnlockPlan = "";
+                if(ImGui.SmallButton("重置")) C.DefaultSubmarineUnlockPlan = "";
             }
             else
             {
-                if(ImGui.SmallButton("Set this plan as default")) C.DefaultSubmarineUnlockPlan = SelectedPlanGuid;
+                if(ImGui.SmallButton("设为默认计划")) C.DefaultSubmarineUnlockPlan = SelectedPlanGuid;
             }
-            ImGuiEx.TextV("Name: ");
+            ImGuiEx.TextV("名称: ");
             ImGui.SameLine();
             ImGuiEx.SetNextItemFullWidth();
             ImGui.InputText($"##planname", ref SelectedPlan.Name, 100);
             ImGuiEx.LineCentered($"planbuttons", () =>
             {
-                ImGuiEx.TextV($"Apply this plan to:");
+                ImGuiEx.TextV($"应用此计划至:");
                 ImGui.SameLine();
-                if(ImGui.Button("ALL submersibles"))
+                if(ImGui.Button("所有潜水艇"))
                 {
                     C.OfflineData.Each(x => x.AdditionalSubmarineData.Each(s => s.Value.SelectedUnlockPlan = SelectedPlanGuid));
                 }
                 ImGui.SameLine();
-                if(ImGui.Button("Current character's submersibles"))
+                if(ImGui.Button("当前角色的潜水艇"))
                 {
                     Data.AdditionalSubmarineData.Each(s => s.Value.SelectedUnlockPlan = SelectedPlanGuid);
                 }
                 ImGui.SameLine();
-                if(ImGui.Button("No submersibles"))
+                if(ImGui.Button("取消应用"))
                 {
                     C.OfflineData.Each(x => x.AdditionalSubmarineData.Where(s => s.Value.SelectedUnlockPlan == SelectedPlanGuid).Each(s => s.Value.SelectedUnlockPlan = Guid.Empty.ToString()));
                 }
             });
             ImGuiEx.LineCentered($"planbuttons2", () =>
             {
-                if(ImGui.Button($"Copy plan settings"))
+                if(ImGui.Button($"复制计划设置"))
                 {
                     Copy(JsonConvert.SerializeObject(SelectedPlan));
                 }
                 ImGui.SameLine();
-                if(ImGui.Button($"Paste plan settings"))
+                if(ImGui.Button($"粘贴计划设置"))
                 {
                     try
                     {
@@ -186,37 +186,37 @@ internal unsafe class SubmarineUnlockPlanUI : Window
                     }
                     catch(Exception ex)
                     {
-                        DuoLog.Error($"Could not import plan: {ex.Message}");
+                        DuoLog.Error($"无法导入计划: {ex.Message}");
                         ex.Log();
                     }
                 }
                 ImGui.SameLine();
-                if(ImGuiEx.ButtonCtrl("Delete this plan"))
+                if(ImGuiEx.ButtonCtrl("删除此计划"))
                 {
                     SelectedPlan.Delete = true;
                 }
                 ImGui.SameLine();
-                if(ImGui.Button($"Help"))
+                if(ImGui.Button($"帮助"))
                 {
-                    Svc.Chat.Print($"Here is the list of all points that can be unlocked. Whenever a plugin needs to select something to unlock, a first available destination will be chosen from this list. Please note that you can NOT simply specify end point of unlocking, you need to select ALL destinations on your way.");
+                    Svc.Chat.Print($"以下是所有可解锁点的列表。当插件需要选择解锁内容时，将从此列表中选择第一个可用的目的地。请注意，您不能简单地指定解锁的终点，需要选择路径上的所有目的地。");
                 }
             });
             if(ImGui.BeginChild("Plan"))
             {
                 if(!IsSubDataAvail())
                 {
-                    ImGuiEx.TextWrapped($"Access submarine list to retrieve data.");
+                    ImGuiEx.TextWrapped($"请访问潜水艇列表以获取数据。");
                 }
-                ImGui.Checkbox($"Unlock submarine slots. Current slots: {GetNumUnlockedSubs()?.ToString() ?? "Unknown"}/4", ref SelectedPlan.UnlockSubs);
-                ImGuiEx.TextWrapped($"Unlocking slots is always prioritized over unlocking routes.");
-                ImGui.Checkbox("Enforce Spam one destination mode in Deep sea site.", ref SelectedPlan.EnforceDSSSinglePoint);
-                ImGui.Checkbox("Set this plan as enforced.", ref SelectedPlan.EnforcePlan);
-                ImGuiEx.HelpMarker("Any point selected for unlock in this map will be executed by every single eligible submarine until everything is actually unlocked");
+                ImGui.Checkbox($"解锁潜水艇槽位。当前槽位: {GetNumUnlockedSubs()?.ToString() ?? "未知"}/4", ref SelectedPlan.UnlockSubs);
+                ImGuiEx.TextWrapped($"解锁槽位始终优先于解锁航线。");
+                ImGui.Checkbox("在深海站点强制使用单一目的地模式", ref SelectedPlan.EnforceDSSSinglePoint);
+                ImGui.Checkbox("强制应用此计划", ref SelectedPlan.EnforcePlan);
+                ImGuiEx.HelpMarker("在此地图中选择解锁的任何点将由每一艘符合条件的潜水艇执行，直到所有内容实际解锁");
                 if(ImGui.BeginTable("##planTable", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
                 {
-                    ImGui.TableSetupColumn("Zone", ImGuiTableColumnFlags.WidthStretch);
-                    ImGui.TableSetupColumn("Map");
-                    ImGui.TableSetupColumn("Unlocked by");
+                    ImGui.TableSetupColumn("区域", ImGuiTableColumnFlags.WidthStretch);
+                    ImGui.TableSetupColumn("地图");
+                    ImGui.TableSetupColumn("解锁方式");
                     ImGui.TableHeadersRow();
                     foreach(var x in Unlocks.PointToUnlockPoint)
                     {
@@ -250,7 +250,7 @@ internal unsafe class SubmarineUnlockPlanUI : Window
                     }
                     ImGui.EndTable();
                 }
-                if(ImGui.CollapsingHeader("Display current point exploration order"))
+                if(ImGui.CollapsingHeader("显示当前点探索顺序"))
                 {
                     ImGuiEx.Text(SelectedPlan.GetPrioritizedPointList().Select(x => $"{Svc.Data.GetExcelSheet<SubmarineExploration>().GetRow(x.point).Destination} ({x.justification})").Join("\n"));
                 }
