@@ -160,9 +160,58 @@ public static unsafe class Utils
                 || data.TeleportOptionsOverride.RetainersPrivate != null;
         }
 
-        public InventoryManagementSettings GetIMSettings()
+        public InventoryManagementSettings GetIMSettings(bool raw = false)
         {
-            return C.DefaultIMSettings;
+            if(C.AdditionalIMSettings.TryGetFirst(x => x.GUID == data.InventoryCleanupPlan, out var plan))
+            {
+                if(!raw && (plan.AdditionModeProtectList || plan.AdditionModeSoftSellList || plan.AdditionModeHardSellList))
+                {
+                    var newPlan = plan.DSFClone();
+                    if(plan.AdditionModeProtectList)
+                    {
+                        foreach(var x in C.DefaultIMSettings.IMProtectList)
+                        {
+                            if(!newPlan.IMProtectList.Contains(x))
+                            {
+                                newPlan.IMProtectList.Add(x);
+                            }
+                        }
+                    }
+                    if(plan.AdditionModeSoftSellList)
+                    {
+                        foreach(var x in C.DefaultIMSettings.IMAutoVendorSoft)
+                        {
+                            if(!newPlan.IMAutoVendorSoft.Contains(x))
+                            {
+                                newPlan.IMAutoVendorSoft.Add(x);
+                            }
+                        }
+                    }
+                    if(plan.AdditionModeHardSellList)
+                    {
+                        foreach(var x in C.DefaultIMSettings.IMAutoVendorHard)
+                        {
+                            if(!newPlan.IMAutoVendorHard.Contains(x))
+                            {
+                                newPlan.IMAutoVendorHard.Add(x);
+                                if(C.DefaultIMSettings.IMAutoVendorHardIgnoreStack.Contains(x))
+                                {
+                                    newPlan.IMAutoVendorHardIgnoreStack.Add(x);
+                                }
+                            }
+                        }
+                    }
+                    return newPlan;
+                }
+                else
+                {
+                    return plan;
+                }
+            }
+            else
+            {
+                return C.DefaultIMSettings;
+            }
         }
     }
 
@@ -232,11 +281,6 @@ public static unsafe class Utils
         return ordered?.ToList() ?? [.. source];
     }
 
-    public static InventoryManagementSettings GetSelectedIMSettings()
-    {
-        return C.DefaultIMSettings;
-    }
-
     extension(GCExchangePlan plan)
     {
         public string DisplayName
@@ -259,6 +303,20 @@ public static unsafe class Utils
                     new TickScheduler(() => plan.Items.Remove(x));
                 }
                 if(x.Data.ValueNullable != null && x.Data.Value.IsUnique) x.Quantity.ValidateRange(0, 1);
+            }
+        }
+    }
+
+    extension(InventoryManagementSettings plan)
+    {
+        public string DisplayName
+        {
+            get
+            {
+                if(plan.Name != "") return plan.Name;
+                var index = C.AdditionalIMSettings.IndexOf(plan);
+                if(index != -1) return $"Plan {index + 1}";
+                return $"Plan {plan.GUID.ToString().Split("-")[0]}";
             }
         }
     }
@@ -410,7 +468,7 @@ public static unsafe class Utils
         }*/
     }
 
-    
+
 
     public static void EnqueueVendorItemsByRetainer()
     {
@@ -440,7 +498,7 @@ public static unsafe class Utils
 
     public static InventoryType[] RetainerInventories => [InventoryType.RetainerPage1, InventoryType.RetainerPage2, InventoryType.RetainerPage3, InventoryType.RetainerPage4, InventoryType.RetainerPage5, InventoryType.RetainerPage6, InventoryType.RetainerPage7];
 
-    public static InventoryType[] RetainerInventoriesWithCrystals => [..RetainerInventories, InventoryType.RetainerCrystals];
+    public static InventoryType[] RetainerInventoriesWithCrystals => [.. RetainerInventories, InventoryType.RetainerCrystals];
 
     public static InventoryType[] PlayerInvetories => [InventoryType.Inventory1, InventoryType.Inventory2, InventoryType.Inventory3, InventoryType.Inventory4];
 
@@ -523,7 +581,7 @@ public static unsafe class Utils
     {
         var im = InventoryManager.Instance();
         var inv = im->GetInventoryContainer(type);
-        for(int i = 0; i < inv->Size; i++)
+        for(var i = 0; i < inv->Size; i++)
         {
             var slot = inv->Items[i];
             if(slot.ItemId == item && (isHq == null || isHq == slot.Flags.HasFlag(InventoryItem.ItemFlags.HighQuality)))

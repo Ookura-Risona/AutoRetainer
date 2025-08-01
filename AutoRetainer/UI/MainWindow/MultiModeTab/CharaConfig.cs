@@ -37,8 +37,8 @@ public class CharaConfig
         {
             b = b.Section("远航探索").Widget(() =>
             {
-                ImGui.Checkbox($"等待所有待处理远航探索", ref data.MultiWaitForAllDeployables);
-                ImGuiComponents.HelpMarker("在所有启用的远航探索返回前，阻止处理此角色");
+                ImGui.Checkbox($"等待航程完成", ref data.MultiWaitForAllDeployables);
+                ImGuiComponents.HelpMarker("""此设置类似于全局选项，但应用于单个角色。启用后，AutoRetainer 将在登录该角色前等待所有远航探索返回。如果您因其他原因已经登录，它仍然会重新派遣已完成的潜艇/飞空艇，除非全局设置“即使已登录也等待”也同时开启。""");
             });
         }
         b = b.Section("传送覆盖设置", data.GetAreTeleportSettingsOverriden() ? ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg] with { X = 1f } : null, true)

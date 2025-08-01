@@ -28,6 +28,7 @@ public class ExpertTab : NeoUIEntry
         .SliderIntAsFloat(100f, "雇员菜单延迟(秒)", () => ref C.RetainerMenuDelay.ValidateRange(0, 2000), 0, 2000)
         .Checkbox($"允许派遣计时器显示负值", () => ref C.TimerAllowNegative)
         .Checkbox($"不检查派遣计划错误", () => ref C.NoErrorCheckPlanner2)
+        .Checkbox("Enable Manual relogs character postprocess", () => ref C.AllowManualPostprocess, "Allow manual command invocation while AutoRetainer locked in postprocess. ")
         .Widget("市场冷却状态覆盖", (x) =>
         {
             if(ImGui.Checkbox(x, ref C.MarketCooldownOverlay))

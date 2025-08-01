@@ -5,12 +5,9 @@ public class MultiModeCommon : NeoUIEntry
 
     public override NuiBuilder Builder { get; init; } = new NuiBuilder()
         .Section("通用设置")
-        .Checkbox($"强制执行完整角色循环", () => ref C.CharEqualize, "推荐给拥有超过15个角色的用户，强制多角色模式确保在返回循环起点前处理完所有角色的探险任务")
         .Checkbox($"在登录界面等待", () => ref C.MultiWaitOnLoginScreen, "如果没有角色可进行探险任务，你将保持登出状态直到有角色可用。启用此选项和多角色模式时，标题画面动画将被禁用")
-        .Checkbox("同步雇员状态（一次性）", () => ref MultiMode.Synchronize, "AutoRetainer将等待所有启用的雇员完成探险任务。完成后此设置将自动禁用，所有角色将被处理")
         .Checkbox($"手动登录时禁用多角色模式", () => ref C.MultiDisableOnRelog)
         .Checkbox($"手动登录时不重置首选角色", () => ref C.MultiNoPreferredReset)
-        .Checkbox("启用手动登录的角色后处理", () => ref C.AllowManualPostprocess)
         .Checkbox("允许进入共享房屋", () => ref C.SharedHET)
         .Checkbox("即使多角色模式禁用也尝试在登录时进入房屋", () => ref C.HETWhenDisabled)
         .Checkbox("当已在雇员铃旁时不传送或进入房屋", () => ref C.NoTeleportHetWhenNextToBell)
@@ -59,9 +56,13 @@ public class MultiModeCommon : NeoUIEntry
         .Checkbox("为航行控制面板传送至部队房屋", () => ref C.GlobalTeleportOptions.Deployables)
         .Checkbox("启用简易传送", () => ref C.AllowSimpleTeleport)
         .Unindent()
-        .Widget(() => ImGuiEx.HelpMarker("允许在未向Lifestream注册房屋的情况下传送。传送功能仍需安装Lifestream插件\n\n警告！此选项不如在Lifestream中注册房屋可靠。如有可能请避免使用", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString()))
+        .Widget(() => ImGuiEx.HelpMarker("""
+            允许在未向Lifestream注册房屋的情况下传送。传送功能仍需安装Lifestream插件
+
+            警告: 此选项不如在Lifestream中注册房屋可靠。如有可能请避免使用
+            """, EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString()))
 
         .Section("应急模块")
-        .Checkbox("连接错误时自动关闭游戏并重试登录", () => ref C.ResolveConnectionErrors)
+        .Checkbox("连接错误时自动关闭游戏并重试登录", () => ref C.ResolveConnectionErrors, "断开连接后，AutoRetainer将尝试重新登录。如果会话已过期，则不会进行登录尝试。")
         .Widget(() => ImGuiEx.PluginAvailabilityIndicator([new("NoKillPlugin")]));
 }

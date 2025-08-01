@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AutoRetainer.Scheduler.Tasks;
-public unsafe static class TaskDeliverItems
+public static unsafe class TaskDeliverItems
 {
     public static void Enqueue()
     {
@@ -17,7 +17,7 @@ public unsafe static class TaskDeliverItems
             Notify.Error("Not employed by a Grand Company");
             return;
         }
-        if(S.LifestreamIPC.IsBusy()) 
+        if(S.LifestreamIPC.IsBusy())
         {
             Notify.Error("Lifestream is busy");
             return;
@@ -36,8 +36,8 @@ public unsafe static class TaskDeliverItems
                 ECommons.ExcelServices.GrandCompany.TwinAdder => "ta",
                 _ => throw new ArgumentOutOfRangeException()
             }));
-            P.TaskManager.Enqueue(() => !S.LifestreamIPC.IsBusy(), new(timeLimitMS: 5 * 60 * 1000));
-            P.TaskManager.Enqueue(() => GCContinuation.EnqueueInitiation(true));
         }
+        P.TaskManager.Enqueue(() => !S.LifestreamIPC.IsBusy(), new(timeLimitMS: 5 * 60 * 1000));
+        P.TaskManager.Enqueue(() => GCContinuation.EnqueueInitiation(true));
     }
 }

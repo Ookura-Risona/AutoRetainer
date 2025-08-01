@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AutoRetainer.UI.NeoUI;
-public unsafe sealed class AccountWhitelist : NeoUIEntry
+public sealed unsafe class AccountWhitelist : NeoUIEntry
 {
     public override void Draw()
     {
@@ -19,7 +19,7 @@ public unsafe sealed class AccountWhitelist : NeoUIEntry
         {
             ImGuiEx.TextWrapped(EColor.YellowBright, "当前白名单状态：已启用，如果需要禁用，请移除所有账户。");
         }
-        
+
         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.UserPlus, "添加当前账户", enabled: Player.Available))
         {
             C.WhitelistedAccounts.Add(*P.Memory.MyAccountId);
