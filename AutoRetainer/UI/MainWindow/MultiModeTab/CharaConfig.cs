@@ -7,7 +7,7 @@ public class CharaConfig
 {
     public static void Draw(OfflineCharacterData data, bool isRetainer)
     {
-        ImGui.PushID(data.CID.ToString());
+        ImGuiEx.PushID(data.CID.ToString());
         SharedUI.DrawMultiModeHeader(data);
         var b = new NuiBuilder()
 
@@ -52,13 +52,13 @@ public class CharaConfig
             ImGuiEx.Checkbox("为雇员传送...", ref data.TeleportOptionsOverride.Retainers);
             ImGui.Indent();
             ImGuiEx.Checkbox("...到私人房屋", ref data.TeleportOptionsOverride.RetainersPrivate);
+            ImGuiEx.Checkbox("...到共享房屋", ref data.TeleportOptionsOverride.RetainersShared);
             ImGuiEx.Checkbox("...到部队房屋", ref data.TeleportOptionsOverride.RetainersFC);
             ImGuiEx.Checkbox("...到公寓", ref data.TeleportOptionsOverride.RetainersApartment);
             ImGui.Text("如果以上所有选项都禁用或失败，将被传送到旅馆");
             ImGui.Unindent();
             ImGuiEx.Checkbox("为远航探索传送到部队房屋", ref data.TeleportOptionsOverride.Deployables);
-            ImGui.Unindent();
-            ImGuiGroup.EndGroupBox();
+            ImGui.Unindent(); 
         }).Draw();
         SharedUI.DrawExcludeReset(data);
         ImGui.PopID();

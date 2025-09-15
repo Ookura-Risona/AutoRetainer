@@ -138,7 +138,7 @@ internal unsafe class Config
 
     public TeleportOptions GlobalTeleportOptions = new();
     public bool SharedHET = false;
-    public bool SkipItemConfirmations = false;
+    internal bool SkipItemConfirmations => true;
     public ulong LastLoggedInChara = 0;
 
     internal bool DontReassign
@@ -254,4 +254,13 @@ internal unsafe class Config
     public List<RetainersVisualOrder> RetainersVisualOrders = [];
     public bool EnableDeployablesSort = false;
     public List<DeployablesVisualOrder> DeployablesVisualOrders = [];
+
+    public bool FullAutoGCDelivery = false;
+    public HalfHourSchedule GCDeliverySchedule = new();
+    public bool FullAutoGCDeliveryOnlyWsUnlocked = false;
+    public int FullAutoGCDeliveryInventory = 50;
+    public bool FullAutoGCDeliveryUseBuffItem = false;
+    public bool FullAutoGCDeliveryDeliverOnVentureExhaust = false;
+    public int FullAutoGCDeliveryDeliverOnVentureLessThan = 50;
+    public bool FullAutoGCDeliveryTpBackToHome = false;
 }

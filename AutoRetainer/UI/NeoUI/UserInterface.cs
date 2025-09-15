@@ -22,11 +22,11 @@ public sealed unsafe class UserInterface : NeoUIEntry
         .Checkbox("在状态栏仅显示最高优先级图标", () => ref C.StatusBarMSI)
         .SliderInt(120f, "状态栏图标大小", () => ref C.StatusBarIconWidth, 32, 128)
         .Checkbox("游戏启动时打开AutoRetainer窗口", () => ref C.DisplayOnStart)
-        .Checkbox("插件激活时跳过物品出售/交易确认", () => ref C.SkipItemConfirmations)
+        //.Checkbox("插件激活时跳过物品出售/交易确认", () => ref C.SkipItemConfirmations)
         .Checkbox("启用标题界面按钮（需重启插件）", () => ref C.UseTitleScreenButton)
         .Checkbox("隐藏角色搜索", () => ref C.NoCharaSearch)
         .Checkbox("不为已完成角色显示背景闪烁", () => ref C.NoGradient)
-        .Checkbox("不警告同一目录运行多个游戏实例", () => ref C.No2ndInstanceNotify, "这将使AutoRetainer在第二个游戏实例中自动跳过加载，除非在主要实例中禁用此选项")
+        .Checkbox("不警告同一目录运行多个游戏", () => ref C.No2ndInstanceNotify, "这将使AutoRetainer在第二个游戏客户端中自动跳过加载，除非在主要客户端中禁用此选项")
 
         .Section("雇员标签页角色排序")
         .Checkbox("启用排序", () => ref C.EnableRetainerSort)

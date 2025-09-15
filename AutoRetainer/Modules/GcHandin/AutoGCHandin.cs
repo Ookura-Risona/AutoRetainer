@@ -65,12 +65,12 @@ internal static unsafe class AutoGCHandin
             Safety.Check();
             if(Operation && HandleConfirmation())
             {
-                PluginLog.Debug($"Handle 1");
+                DebugLog($"Handle 1");
                 //
             }
             else if(Operation && HandleYesno())
             {
-                PluginLog.Debug($"Handle 2");
+                DebugLog($"Handle 2");
                 //
             }
             else
@@ -141,6 +141,7 @@ internal static unsafe class AutoGCHandin
         {
             if(Operation)
             {
+                EzThrottler.Throttle($"GcBusy", 60000, true);
                 if(IsDone(addon))
                 {
                     var s = $"Automatic handin has been completed";
@@ -154,6 +155,10 @@ internal static unsafe class AutoGCHandin
                     if(Utils.GetGCExchangePlanWithOverrides().FinalizeByPurchasing)
                     {
                         GCContinuation.EnqueueInitiation(false);
+                    }
+                    else
+                    {
+                        EzThrottler.Reset($"GcBusy");
                     }
                 }
                 else
@@ -185,6 +190,7 @@ internal static unsafe class AutoGCHandin
                                     if(FindNextHandinItem(false) == null)
                                     {
                                         GCContinuation.EnqueueDeliveryClose();
+                                        EzThrottler.Reset($"GcBusy");
                                         throw new GCHandinInterruptedException("Auto GC handin completed");
                                     }
                                     else
@@ -316,6 +322,7 @@ internal static unsafe class AutoGCHandin
             var seals = (uint)(item.Seals * Utils.GetGCSealMultiplier());
             if(!checkSealCap || sealsRemaining > seals) candidates.Add((item.ItemID, seals, i));
         }
+        Overlay.Remaining = candidates.Count;
         if(candidates.Count > 0)
         {
             return candidates

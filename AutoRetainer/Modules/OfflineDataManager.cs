@@ -92,6 +92,8 @@ internal static unsafe class OfflineDataManager
         }
         data.Gil = (uint)InventoryManager.Instance()->GetInventoryItemCount(1);
         data.ClassJobLevelArray = UIState.Instance()->PlayerState.ClassJobLevels.ToArray();
+        data.GCRank = AutoGCHandin.GetRank();
+        data.GCSeals = AutoGCHandin.GetSeals();
         if(writeGatherables)
         {
             try
@@ -147,7 +149,7 @@ internal static unsafe class OfflineDataManager
             var numArray = UIModule.Instance()->GetRaptureAtkModule()->AtkModule.GetNumberArrayData(58);
             if(numArray != null)
             {
-                var gil = numArray->IntArray[354];
+                var gil = Utils.CountItemsInInventory(1, null, [InventoryType.FreeCompanyGil]);
                 if(gil != 0 || S.FCPointsUpdater?.IsFCChestReady() == true)
                 {
                     C.FCData[fc->Id].Gil = gil;

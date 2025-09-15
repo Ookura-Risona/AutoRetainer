@@ -8,6 +8,10 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.Sheets;
+using Microsoft.VisualBasic.ApplicationServices;
+using System.Text.RegularExpressions;
+using TerraFX.Interop.Windows;
+using static FFXIVClientStructs.FFXIV.Client.UI.RaptureAtkHistory.Delegates;
 
 namespace AutoRetainer.Scheduler.Handlers;
 
@@ -550,7 +554,7 @@ internal static unsafe class RetainerHandlers
             if(state.Type == 0)
             {
                 FrameThrottler.Throttle("RetainerTaskSupply.InitWait", 10, true);
-                PluginLog.Debug($"RetainerTaskSupply waiting (2)...");
+                DebugLog($"RetainerTaskSupply waiting (2)...");
                 return false;
             }
 
@@ -559,15 +563,15 @@ internal static unsafe class RetainerHandlers
                 if(addon->UldManager.NodeList[3]->IsVisible())
                 {
                     var list = addon->UldManager.NodeList[3]->GetAsAtkComponentList();
-                    PluginLog.Debug($"Cnt: {list->ListLength}");
+                    DebugLog($"Cnt: {list->ListLength}");
                     for(var i = 0; i < Math.Min(list->ListLength, 16); i++)
                     {
                         var el = list->AtkComponentBase.UldManager.NodeList[2 + i];
                         var text = GenericHelpers.ReadSeString(&el->GetAsAtkComponentNode()->Component->UldManager.NodeList[9]->GetAsAtkTextNode()->NodeText).GetText();
-                        PluginLog.Debug($"Text: {text}, name: {name}");
+                        DebugLog($"Text: {text}, name: {name}");
                         if(text == name)
                         {
-                            PluginLog.Debug($"Match");
+                            DebugLog($"Match");
                             Callback.Fire(addon, true, 5, i, new AtkValue() { Type = 0, Int = 0 });
                             return true;
                         }
@@ -587,7 +591,7 @@ internal static unsafe class RetainerHandlers
         else
         {
             FrameThrottler.Throttle("RetainerTaskSupply.InitWait", 10, true);
-            PluginLog.Debug($"RetainerTaskSupply waiting...");
+            DebugLog($"RetainerTaskSupply waiting...");
         }
         return false;
     }
@@ -600,7 +604,7 @@ internal static unsafe class RetainerHandlers
             if(state.Type == 0)
             {
                 FrameThrottler.Throttle("RetainerTaskSupply.InitWait", 10, true);
-                PluginLog.Debug($"RetainerTaskSupply waiting (2)...");
+                DebugLog($"RetainerTaskSupply waiting (2)...");
                 return false;
             }
 
@@ -614,7 +618,7 @@ internal static unsafe class RetainerHandlers
         else
         {
             FrameThrottler.Throttle("RetainerTaskSupply.InitWait", 10, true);
-            PluginLog.Debug($"RetainerTaskSupply waiting...");
+            DebugLog($"RetainerTaskSupply waiting...");
         }
         return false;
     }

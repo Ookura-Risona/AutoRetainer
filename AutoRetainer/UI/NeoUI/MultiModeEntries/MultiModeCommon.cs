@@ -49,6 +49,7 @@ public class MultiModeCommon : NeoUIEntry
         .Checkbox("为雇员传送至...", () => ref C.GlobalTeleportOptions.Retainers)
         .Indent()
         .Checkbox("...个人房屋", () => ref C.GlobalTeleportOptions.RetainersPrivate)
+        .Checkbox("...到共享房屋", () => ref C.GlobalTeleportOptions.RetainersShared)
         .Checkbox("...部队房屋", () => ref C.GlobalTeleportOptions.RetainersFC)
         .Checkbox("...公寓", () => ref C.GlobalTeleportOptions.RetainersApartment)
         .TextWrapped("如果以上选项均禁用或失败，将传送至旅馆")

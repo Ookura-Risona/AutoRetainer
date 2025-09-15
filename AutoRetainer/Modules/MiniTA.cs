@@ -45,7 +45,11 @@ internal static unsafe class MiniTA
         var x = Utils.GetSpecificYesno(s => s.Cleanup().ContainsAny(StringComparison.OrdinalIgnoreCase, Ref<string[]>.Get("Skip", () => ((uint[])[397, 398, 399, 4477, 102433, 102434]).Select(a => Svc.Data.GetExcelSheet<Addon>().GetRow(a).Text.GetText().Cleanup()).ToArray())));
         if(x != null && IsAddonReady(x))
         {
-            new AddonMaster.SelectYesno(x).Yes();
+            var m = new AddonMaster.SelectYesno(x);
+            if(EzThrottler.Throttle($"Skip_Yesno_{m.Text}", 200))
+            {
+                m.Yes();
+            }
         }
     }
 
@@ -73,16 +77,16 @@ internal static unsafe class MiniTA
     {
         var addon = Svc.GameGui.GetAddonByName("SelectString", 1);
         if(addon == IntPtr.Zero) return;
-        var selectStrAddon = (AddonSelectString*)addon;
+        var selectStrAddon = (AddonSelectString*)addon.Address;
         if(!IsAddonReady(&selectStrAddon->AtkUnitBase))
         {
             return;
         }
-        //PluginLog.Debug($"1: {selectStrAddon->AtkUnitBase.UldManager.NodeList[3]->GetAsAtkTextNode()->NodeText.ToString()}");
+        //DebugLog($"1: {selectStrAddon->AtkUnitBase.UldManager.NodeList[3]->GetAsAtkTextNode()->NodeText.ToString()}");
         if(!Lang.SkipCutsceneStr.Contains(selectStrAddon->AtkUnitBase.UldManager.NodeList[3]->GetAsAtkTextNode()->NodeText.ToString())) return;
         if(EzThrottler.Throttle("SkipCutsceneConfirm"))
         {
-            PluginLog.Debug("Selecting cutscene skipping");
+            DebugLog("Selecting cutscene skipping");
             new AddonMaster.SelectString(addon).Entries[0].Select();
         }
     }

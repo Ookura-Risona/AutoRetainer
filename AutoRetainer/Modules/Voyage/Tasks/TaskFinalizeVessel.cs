@@ -1,4 +1,5 @@
 ﻿using AutoRetainer.Internal;
+using AutoRetainer.Scheduler.Tasks;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace AutoRetainer.Modules.Voyage.Tasks;
@@ -13,6 +14,9 @@ internal static unsafe class TaskFinalizeVessel
         P.TaskManager.Enqueue(VoyageScheduler.FinalizeVessel);
         P.TaskManager.Enqueue(() => TryGetAddonByName<AtkUnitBase>("SelectString", out var addon) && IsAddonReady(addon), "WaitForSelectStringAddon");
         TaskIntelligentRepair.Enqueue(name, type);
-        if(quit) P.TaskManager.Enqueue(VoyageScheduler.SelectQuitVesselMenu);
+        if(quit)
+        {
+            P.TaskManager.Enqueue(VoyageScheduler.SelectQuitVesselMenu);
+        }
     }
 }

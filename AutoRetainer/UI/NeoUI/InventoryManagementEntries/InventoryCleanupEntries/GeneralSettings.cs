@@ -2,7 +2,7 @@
 using ECommons.GameHelpers;
 
 namespace AutoRetainer.UI.NeoUI.InventoryManagementEntries.InventoryCleanupEntries;
-public class GeneralSettings : InventoryManagemenrBase
+public class GeneralSettings : InventoryManagementBase
 {
     public override string Name { get; } = "Inventory Cleanup/General Settings";
 
@@ -25,8 +25,8 @@ public class GeneralSettings : InventoryManagemenrBase
             .Unindent()
             .Checkbox($"Auto-desynth items", () => ref InventoryCleanupCommon.SelectedPlan.IMEnableItemDesynthesis)
             .Checkbox($"Enable context menu integration", () => ref InventoryCleanupCommon.SelectedPlan.IMEnableContextMenu)
-            .Checkbox($"Allow selling items from Armory Chest", () => ref InventoryCleanupCommon.SelectedPlan.AllowSellFromArmory)
-            .Checkbox($"Demo mode", () => ref InventoryCleanupCommon.SelectedPlan.IMDry, "Do not sell items, instead print in chat what would be sold")
+            .Checkbox($"Allow selling/discarding items from Armory Chest", () => ref InventoryCleanupCommon.SelectedPlan.AllowSellFromArmory)
+            .Checkbox($"Demo mode", () => ref InventoryCleanupCommon.SelectedPlan.IMDry, "Do not sell/discard items, instead print in chat what would be sold")
             ;
     }
 }

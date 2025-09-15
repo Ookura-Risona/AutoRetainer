@@ -50,7 +50,7 @@ public static unsafe class InventoryCleanupCommon
                 ImGui.Separator();
                 foreach(var x in C.AdditionalIMSettings)
                 {
-                    ImGui.PushID(x.ID);
+                    ImGuiEx.PushID(x.ID);
                     if(ImGui.Selectable(x.DisplayName)) SelectedPlanGuid = x.GUID;
                     ImGui.PopID();
                 }
@@ -87,6 +87,7 @@ public static unsafe class InventoryCleanupCommon
                 try
                 {
                     var newPlan = EzConfig.DefaultSerializationFactory.Deserialize<InventoryManagementSettings>(Paste()) ?? throw new NullReferenceException();
+                    newPlan.GUID.Regenerate();
                     C.AdditionalIMSettings.Add(newPlan);
                     SelectedPlanGuid = newPlan.GUID;
                 }
@@ -102,7 +103,9 @@ public static unsafe class InventoryCleanupCommon
                 ImGui.SameLine(0, 1);
                 if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowsUpToLine, enabled: ImGuiEx.Ctrl && selectedPlan != null))
                 {
-                    C.DefaultIMSettings = selectedPlan;
+                    C.DefaultIMSettings = selectedPlan.DSFClone();
+                    C.DefaultIMSettings.GUID.Regenerate();
+                    C.DefaultIMSettings.Name = "";
                     new TickScheduler(() => C.AdditionalIMSettings.Remove(selectedPlan));
                 }
                 ImGuiEx.Tooltip("Make this plan default. Current default plan will be overwritten. Hold CTRL and click.");
@@ -143,13 +146,28 @@ public static unsafe class InventoryCleanupCommon
                         Data.InventoryCleanupPlan = selectedPlan.GUID;
                     }
                 }
+                ImGui.SameLine();
             }
+
+            var charas = C.OfflineData.Where(x => x.ExchangePlan == selectedPlan.GUID).ToArray();
+            if(charas.Length > 0)
+            {
+                ImGuiEx.Text($"Used by {charas.Length} characters in total");
+                ImGuiEx.Tooltip($"{charas.Select(x => x.NameWithWorldCensored)}");
+            }
+            else
+            {
+                ImGuiEx.Text($"Not used by any characters");
+            }
+
             ImGuiEx.Text("Combine this plan's lists with default plan:");
             ImGui.Indent();
             ImGui.Checkbox("Combine Quick Venture sell list", ref selectedPlan.AdditionModeSoftSellList);
             ImGuiEx.HelpMarker("Items retrieved from quick ventures included into both this plan and default plan will be sold.");
             ImGui.Checkbox("Combine Unconditional sell list", ref selectedPlan.AdditionModeHardSellList);
             ImGuiEx.HelpMarker("Items included into both this plan and default plan will be sold. If included into both default and current plan, stack size bypass option from current plan will be honored. \"Maximum stack size to be sold\" option from current plan will override default plan's option. ");
+            ImGui.Checkbox("Combine Discard list", ref selectedPlan.AdditionModeDiscardList);
+            ImGuiEx.HelpMarker("Items included into both this plan and default plan will be discarded. If included into both default and current plan, stack size bypass option from current plan will be honored. \"Maximum stack size to be discarded\" option from current plan will override default plan's option. ");
             ImGui.Checkbox("Combine Protection list", ref selectedPlan.AdditionModeProtectList);
             ImGuiEx.HelpMarker("Items included into both this plan and default plan will not be sold automatically or exchanged to Grand Company, even if included into any lists.");
             ImGui.Unindent();

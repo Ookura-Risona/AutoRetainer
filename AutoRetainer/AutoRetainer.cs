@@ -446,7 +446,17 @@ public unsafe class AutoRetainer : IDalamudPlugin
         }
         else if(arguments.EqualsIgnoreCase("deliver"))
         {
-            TaskDeliverItems.Enqueue();
+            if(!P.TaskManager.IsBusy)
+            {
+                TaskDeliverItems.Enqueue();
+            }
+        }
+        else if(arguments.EqualsIgnoreCase("discard"))
+        {
+            if(!P.TaskManager.IsBusy)
+            {
+                TaskRecursiveItemDiscard.EnqueueIfNeeded();
+            }
         }
         else if(arguments.StartsWith("set"))
         {
@@ -547,7 +557,7 @@ public unsafe class AutoRetainer : IDalamudPlugin
             if(!retainer.VentureID.EqualsAny(0u, LastVentureID))
             {
                 LastVentureID = retainer.VentureID;
-                PluginLog.Debug($"Retainer {retainer.Name} current venture={LastVentureID}");
+                DebugLog($"Retainer {retainer.Name} current venture={LastVentureID}");
             }
         }
         else
@@ -555,7 +565,7 @@ public unsafe class AutoRetainer : IDalamudPlugin
             if(LastVentureID != 0)
             {
                 LastVentureID = 0;
-                PluginLog.Debug($"Last venture ID reset");
+                DebugLog($"Last venture ID reset");
             }
         }
         //if(C.RetryItemSearch) RetryItemSearch.Tick();

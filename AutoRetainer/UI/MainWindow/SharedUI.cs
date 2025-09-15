@@ -73,8 +73,7 @@ internal static class SharedUI
             {
                 new TickScheduler(() => C.OfflineData.RemoveAll(x => x.CID == data.CID));
             }
-            ImGuiComponents.HelpMarker("角色的保存数据将被清除但不会排除该角色。当您再次登录此角色时，角色数据将重新生成。");
-            ImGuiGroup.EndGroupBox();
+            ImGuiComponents.HelpMarker("角色保存的数据将被清除但不会排除该角色。当您再次登录此角色时，角色数据将重新生成。");
         }).Draw();
     }
 }

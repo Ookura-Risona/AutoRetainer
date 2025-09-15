@@ -5,11 +5,12 @@ using ECommons.Throttlers;
 using Lumina.Excel.Sheets;
 
 namespace AutoRetainer.UI.NeoUI.InventoryManagementEntries;
-public class EntrustManager : InventoryManagemenrBase
+public class EntrustManager : InventoryManagementBase
 {
     public override string Name { get; } = "Entrust Manager";
     private Guid SelectedGuid = Guid.Empty;
     private string Filter = "";
+    private InventoryManagementCommon InventoryManagementCommon = new();
 
     public override void Draw()
     {
@@ -25,7 +26,7 @@ public class EntrustManager : InventoryManagemenrBase
                 for(var i = 0; i < C.EntrustPlans.Count; i++)
                 {
                     var plan = C.EntrustPlans[i];
-                    ImGui.PushID(plan.Guid.ToString());
+                    ImGuiEx.PushID(plan.Guid.ToString());
                     if(ImGui.Selectable(plan.Name, plan == selectedPlan))
                     {
                         SelectedGuid = plan.Guid;
@@ -105,7 +106,7 @@ public class EntrustManager : InventoryManagemenrBase
                         ImGui.TableNextColumn();
                         if(ThreadLoadImageHandler.TryGetIconTextureWrap(x.Icon, true, out var icon))
                         {
-                            ImGui.Image(icon.ImGuiHandle, new(ImGui.GetFrameHeight()));
+                            ImGui.Image(icon.Handle, new(ImGui.GetFrameHeight()));
                         }
                         ImGui.TableNextColumn();
                         if(ImGui.Checkbox(x.Name.ToString(), ref contains))
@@ -131,7 +132,10 @@ public class EntrustManager : InventoryManagemenrBase
             });
             ImGuiEx.TreeNodeCollapsingHeader($"Entrust individual items ({selectedPlan.EntrustItems.Count} selected)###eitems", () =>
             {
-                InventoryManagementCommon.DrawListNew(selectedPlan.EntrustItems, (x) =>
+                InventoryManagementCommon.DrawListNew(
+                    itemId => selectedPlan.EntrustItems.Add(itemId), 
+                    itemId => selectedPlan.EntrustItems.Remove(itemId), 
+                    selectedPlan.EntrustItems, (x) =>
                 {
                     var amount = selectedPlan.EntrustItemsAmountToKeep.SafeSelect(x);
                     ImGui.SameLine();

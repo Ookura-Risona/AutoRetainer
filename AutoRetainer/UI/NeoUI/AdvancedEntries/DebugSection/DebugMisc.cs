@@ -1,11 +1,12 @@
 ﻿using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.ExcelServices;
+using ECommons.Interop;
 using ECommons.MathHelpers;
+using ECommons.UIHelpers.AddonMasterImplementations;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using PInvoke;
 using ItemLevel = AutoRetainer.Helpers.ItemLevel;
 
 namespace AutoRetainer.UI.NeoUI.AdvancedEntries.DebugSection;
@@ -14,6 +15,16 @@ internal unsafe class DebugMisc : DebugSectionBase
 {
     public override void Draw()
     {
+        if(ImGui.CollapsingHeader("CMenu"))
+        {
+            if(TryGetAddonMaster<AddonMaster.ContextMenu>(out var m) && m.IsAddonReady)
+            {
+                foreach(var x in m.Entries)
+                {
+                    ImGuiEx.Text($"{x.Text}/{x.Enabled}");
+                }
+            }
+        }
         if(ImGui.CollapsingHeader("Retainer item stats"))
         {
             var im = InventoryManager.Instance();
@@ -77,7 +88,7 @@ internal unsafe class DebugMisc : DebugSectionBase
         ImGui.Separator();
         ImGuiEx.Text($"CSFramework.Instance()->WindowInactive: {CSFramework.Instance()->WindowInactive}");
         ImGuiEx.Text($"IsKeyPressed(C.TempCollectB): {IsKeyPressed(C.TempCollectB)}");
-        ImGuiEx.Text($"Bitmask.IsBitSet(User32.GetKeyState((int)C.TempCollectB), 15): {Bitmask.IsBitSet(User32.GetKeyState((int)C.TempCollectB), 15)}");
+        ImGuiEx.Text($"Bitmask.IsBitSet(User32.GetKeyState((int)C.TempCollectB), 15): {Bitmask.IsBitSet(TerraFX.Interop.Windows.Windows.GetKeyState((int)C.TempCollectB), 15)}");
         ImGuiEx.Text($"DontReassign: {C.DontReassign}, key {C.TempCollectB}/{(int)C.TempCollectB}");
         foreach(var x in C.OfflineData)
         {
