@@ -20,6 +20,8 @@ internal unsafe class Config
     public bool RecordStats = true;
     public bool AutoGCContinuation = false;
     public HashSet<ulong> WhitelistedAccounts = [];
+    public int NumLoginOverlayCols = 1;
+    public float LoginOverlayPercent = 100f;
 
     public bool ShouldSerializeEnableAutoGCHandin()
     {
@@ -141,6 +143,8 @@ internal unsafe class Config
     internal bool SkipItemConfirmations => true;
     public ulong LastLoggedInChara = 0;
 
+    public bool TeleportAfterGCExchange = true;
+
     internal bool DontReassign
     {
         get
@@ -260,7 +264,15 @@ internal unsafe class Config
     public bool FullAutoGCDeliveryOnlyWsUnlocked = false;
     public int FullAutoGCDeliveryInventory = 50;
     public bool FullAutoGCDeliveryUseBuffItem = false;
+    public bool FullAutoGCDeliveryUseBuffFCAction = false;
     public bool FullAutoGCDeliveryDeliverOnVentureExhaust = false;
     public int FullAutoGCDeliveryDeliverOnVentureLessThan = 50;
     public bool FullAutoGCDeliveryTpBackToHome = false;
+    public bool VendorItemAfterVoyage = false;
+
+    public bool ShutdownOnSubExhaustion = false;
+    public float HoursForShutdown = 3;
+
+    public bool MultiOnPluginLoad = false;
+    public int MultiModeOnPluginLoadDelay = 10;
 }

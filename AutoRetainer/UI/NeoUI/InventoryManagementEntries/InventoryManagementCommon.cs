@@ -142,7 +142,7 @@ public unsafe class InventoryManagementCommon
                                 }
                                 else
                                 {
-                                    if(ImGuiEx.HoveredAndClicked("Right click to add this single item to list immediately", ImGuiMouseButton.Right))
+                                    if(ImGuiEx.HoveredAndClicked("Right click to remove this single item from list immediately", ImGuiMouseButton.Right))
                                     {
                                         removeAction(x.RowId);
                                     }
@@ -204,7 +204,7 @@ public unsafe class InventoryManagementCommon
                 {
                     actions.Add(() =>
                     {
-                        ImGuiEx.PushID(item.RowId.ToString());
+                        ImGui.PushID(item.RowId.ToString());
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
                         if(ThreadLoadImageHandler.TryGetIconTextureWrap(item.Icon, false, out var tex))

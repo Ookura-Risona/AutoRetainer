@@ -13,6 +13,7 @@ using AutoRetainerAPI.Configuration;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Interface.ImGuiNotification;
 using ECommons.Automation;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.Configuration;
@@ -30,6 +31,7 @@ using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
 using PunishLib;
 using System.Diagnostics;
+using Action = System.Action;
 using LoginOverlay = AutoRetainer.UI.Overlays.LoginOverlay;
 
 namespace AutoRetainer;
@@ -208,6 +210,33 @@ public unsafe class AutoRetainer : IDalamudPlugin
         }
         SingletonServiceManager.Initialize(typeof(AutoRetainerServiceManager));
 
+
+        if(C.MultiOnPluginLoad)
+        {
+            if(C.MultiModeOnPluginLoadDelay > 0)
+            {
+                var n = Svc.NotificationManager.AddNotification(new Notification()
+                {
+                    UserDismissable = false,
+                    Minimized = false,
+                    HardExpiry = DateTime.Now + TimeSpan.FromSeconds(C.MultiModeOnPluginLoadDelay),
+                    InitialDuration = TimeSpan.FromSeconds(C.MultiModeOnPluginLoadDelay),
+                    Title = "AutoRetainer Startup",
+                    Content = $"Multi Mode will be enabled in {C.MultiModeOnPluginLoadDelay} seconds. Click here to cancel."
+                });
+                TaskManager.EnqueueDelay(C.MultiModeOnPluginLoadDelay * 1000);
+                TaskManager.Enqueue((Action)(() => MultiMode.Enabled = true));
+                n.Click += delegate 
+                {
+                    TaskManager.Abort(); 
+                    n.DismissNow(); 
+                };
+            }
+            else
+            {
+                MultiMode.Enabled = true;
+            }
+        }
     }
 
     private void Toasts_Toast(ref SeString message, ref ToastOptions options, ref bool isHandled)
@@ -355,23 +384,7 @@ public unsafe class AutoRetainer : IDalamudPlugin
         {
             if(!IsOccupied() && !P.TaskManager.IsBusy)
             {
-                if(NpcSaleManager.GetValidNPC() != null && Data.GetIMSettings().IMEnableNpcSell)
-                {
-                    NpcSaleManager.EnqueueIfItemsPresent(true);
-                }
-                else if(Data.GetIMSettings().IMEnableAutoVendor && Utils.GetReachableRetainerBell(true) != null && Player.IsInHomeWorld)
-                {
-                    P.SkipNextEnable = true;
-                    TaskInteractWithNearestBell.Enqueue(true);
-                    P.TaskManager.Enqueue(() => TryGetAddonMaster<AddonMaster.RetainerList>(out var m) && m.IsAddonReady);
-                    P.TaskManager.Enqueue(() =>
-                    {
-                        P.TaskManager.BeginStack();
-                        Safe(Utils.EnqueueVendorItemsByRetainer);
-                        P.TaskManager.InsertStack();
-                    });
-                    P.TaskManager.Enqueue(RetainerListHandlers.CloseRetainerList);
-                }
+                TaskVendorItems.EnqueueFromCommand();
             }
             else
             {

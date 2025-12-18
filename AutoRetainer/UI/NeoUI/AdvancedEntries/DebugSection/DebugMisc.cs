@@ -1,4 +1,7 @@
-﻿using ECommons.Configuration;
+﻿using AutoRetainer.Modules.Voyage;
+using AutoRetainer.Scheduler.Tasks;
+using Dalamud.Utility;
+using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.ExcelServices;
 using ECommons.Interop;
@@ -7,6 +10,7 @@ using ECommons.UIHelpers.AddonMasterImplementations;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Lumina.Excel.Sheets;
 using ItemLevel = AutoRetainer.Helpers.ItemLevel;
 
 namespace AutoRetainer.UI.NeoUI.AdvancedEntries.DebugSection;
@@ -15,6 +19,81 @@ internal unsafe class DebugMisc : DebugSectionBase
 {
     public override void Draw()
     {
+        if(ImGuiEx.Button("Telelport"))
+        {
+            MultiMode.RunTeleportLogic();
+        }
+        if(ImGui.CollapsingHeader("AskEligibility"))
+        {
+            ImGuiEx.Text($"""
+                Current character: 
+                SentVentures: {Data?.SentVenturesByDay.Sum(x => x.Value)}
+                SentVoyages: {Data?.SentVoyagesByDay.Sum(x => x.Value)}
+                Max enabled retainers: {Data?.GetEnabledRetainers(false).Length}
+                SentVentures all: {C.OfflineData.Sum(x => x.SentVenturesByDay.Select(x => x.Value).Sum())}
+                SentVoyages all: {C.OfflineData.Sum(x => x.SentVoyagesByDay.Select(x => x.Value).Sum())}
+                Max enabled retainers global: {C.OfflineData.Select(x => x.GetEnabledRetainers().Length).MaxSafe()}
+                Characters with enabled retainers: {C.OfflineData.Where(x => x.GetEnabledRetainers().Length > 0 && x.Enabled).Count()}
+                Characters with enabled submarines: {C.OfflineData.Where(x => x.GetEnabledVesselsData(Internal.VoyageType.Submersible).Count > 0 && x.WorkshopEnabled).Count()}
+                ---------
+                By day:
+                """);
+            var days = C.OfflineData.Select(x => (long[])[..x.SentVenturesByDay.Keys, ..x.SentVoyagesByDay.Keys]).SelectNested(x => x).ToHashSet();
+            ImGui.Indent();
+            foreach(var x in days)
+            {
+                ImGuiEx.Text($"{x}: SentVentures: {C.OfflineData.Select(c => c.SentVenturesByDay.SafeSelect(x)).Sum()},  SentVoyages: {C.OfflineData.Select(c => c.SentVoyagesByDay.SafeSelect(x)).Sum()}");
+            }
+            ImGui.Unindent();
+            ImGuiEx.Text($"""
+                ---------
+                By character:
+                """);
+            foreach(var x in C.OfflineData)
+            {
+                ImGuiEx.Text($"{x.NameWithWorld}: SentVentures: {x.SentVenturesByDay.Sum(s => s.Value)}, SentVoyages: {x.SentVoyagesByDay.Sum(s => s.Value)}");
+            }
+        }
+        if(ImGui.CollapsingHeader("FreeCompanyAction"))
+        {
+            ImGuiEx.Text($"Num: {TaskActivateSealSweetener.NumActions}");
+            foreach(var x in TaskActivateSealSweetener.Actions)
+            {
+                ImGuiEx.Text($"{x} / {Svc.Data.GetExcelSheet<CompanyAction>().GetRowOrDefault((uint)x)?.Name}");
+            }
+            ImGuiEx.FilteringInputInt("Callback value 1", out var val1);
+            ImGuiEx.FilteringInputInt("Callback value 2", out var val2);
+            if(ImGui.Button("On FreeCompany"))
+            {
+                if(TryGetAddonByName<AtkUnitBase>("FreeCompany", out var addon) && addon->IsReady())
+                {
+                    Callback.Fire(addon, true, val1, (uint)val2);
+                }
+            }
+            if(ImGui.Button("On FreeCompanyAction"))
+            {
+                if(TryGetAddonByName<AtkUnitBase>("FreeCompanyAction", out var addon) && addon->IsReady())
+                {
+                    Callback.Fire(addon, true, val1, (uint)val2);
+                }
+            }
+            if(ImGui.Button("TaskActivateSealSweetener.Enqueue"))
+            {
+                TaskActivateSealSweetener.Enqueue();
+            }
+            if(ImGui.Button("TaskActivateSealSweetener.EnqueueThrottled"))
+            {
+                TaskActivateSealSweetener.EnqueueThrottled();
+            }
+        }
+        if(ImGui.CollapsingHeader("618"))
+        {
+            var a = Svc.Data.GetExcelSheet<Lobby>().GetRow(618).Text.ToDalamudString();
+            foreach(var pl in a.Payloads)
+            {
+                ImGuiEx.Text($"{pl.Type}: {pl.ToString()}");
+            }
+        }
         if(ImGui.CollapsingHeader("CMenu"))
         {
             if(TryGetAddonMaster<AddonMaster.ContextMenu>(out var m) && m.IsAddonReady)

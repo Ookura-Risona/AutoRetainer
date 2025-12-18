@@ -1,4 +1,6 @@
-﻿namespace AutoRetainer.UI.NeoUI.MultiModeEntries;
+﻿using ECommons.Throttlers;
+
+namespace AutoRetainer.UI.NeoUI.MultiModeEntries;
 public class MultiModeDeployables : NeoUIEntry
 {
     public override string Path => "多角色模式/远航探索";
@@ -12,6 +14,7 @@ public class MultiModeDeployables : NeoUIEntry
         .Unindent()
         .DragInt(60f, "提前登录阈值（秒）", () => ref C.MultiModeWorkshopConfiguration.AdvanceTimer.ValidateRange(0, 300), 0.1f, 0, 300, "AutoRetainer应在该角色上的潜艇/飞空艇准备好重新派遣前提前登录的秒数。")
         .DragInt(120f, "雇员任务处理截止时间（分钟）", () => ref C.DisableRetainerVesselReturn.ValidateRange(0, 60), "如果设置大于0的值，AutoRetainer将在此分钟数前停止处理任何雇员任务（考虑所有先前设置），以防任何角色重新部署潜艇/飞空艇。")
+        .Checkbox("Sell items from Unconditional sell list right after deployment (requires retainers)", () => ref C.VendorItemAfterVoyage)
         .Checkbox("进入工坊时定期检查部队箱金币", () => ref C.FCChestGilCheck, "进入工坊时定期检查部队箱，以保持金币计数器更新。")
         .Indent()
         .SliderInt(150f, "检查频率（小时）", () => ref C.FCChestGilCheckCd, 0, 24 * 5)
@@ -19,5 +22,16 @@ public class MultiModeDeployables : NeoUIEntry
         {
             if(ImGuiEx.Button(x, C.FCChestGilCheckTimes.Count > 0)) C.FCChestGilCheckTimes.Clear();
         })
-        .Unindent();
+        .Unindent()
+        .Checkbox("Shutdown the game after all deployables have been processed", () => ref C.ShutdownOnSubExhaustion)
+        .Indent()
+        .SliderFloat(150f, "Don't shutdown if there are deployables that return within this amount of hours", () => ref C.HoursForShutdown, 0f, 10f)
+        .Widget(() =>
+        {
+            ImGuiEx.HelpMarker($"""
+                Currently: {(Utils.CanShutdownForSubs()?"Can shutdown":"Can NOT shutdown")}
+                Remaining for force shutdown: {EzThrottler.GetRemainingTime("ForceShutdownForSubs")}
+                """);
+        })
+        ;
 }

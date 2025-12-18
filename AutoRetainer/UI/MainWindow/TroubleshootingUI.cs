@@ -11,6 +11,18 @@ public static unsafe class TroubleshootingUI
     {
         ImGuiEx.TextWrapped("本选项卡检查您的配置是否存在常见问题，您可以在联系技术支持前自行解决这些问题。");
 
+        if(!Player.Available)
+        {
+            ImGuiEx.TextWrapped($"Can not troubleshoot when not logged in.");
+            return;
+        }
+
+        if(Data == null)
+        {
+            ImGuiEx.TextWrapped($"No data available for current character. Access retainer bell, deployables panel or logout to create data.");
+            return;
+        }
+
         if(!Svc.ClientState.ClientLanguage.EqualsAny(ClientLanguage.Japanese, ClientLanguage.German, ClientLanguage.French, ClientLanguage.English))
         {
             Error($"检测到非国际服客户端。AutoRetainer未在其它最终幻想14客户端上进行测试。部分或全部功能可能无法正常工作。");

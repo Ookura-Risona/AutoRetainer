@@ -14,6 +14,10 @@ public class MultiModeCommon : NeoUIEntry
 
         .Section("游戏启动")
         .Checkbox($"游戏启动时启用多角色模式", () => ref C.MultiAutoStart)
+        .Checkbox($"Enable Multi Mode on Plugin Startup", () => ref C.MultiOnPluginLoad)
+        .Indent()
+        .SliderInt(150f, "Delay, seconds", () => ref C.MultiModeOnPluginLoadDelay, 0, 20)
+        .Unindent()
         .Widget("游戏启动时自动登录", (x) =>
         {
             ImGui.SetNextItemWidth(150f);

@@ -159,6 +159,10 @@ internal static unsafe class AutoGCHandin
                     else
                     {
                         EzThrottler.Reset($"GcBusy");
+                        if(C.TeleportAfterGCExchange)
+                        {
+                            P.TaskManager.Enqueue(MultiMode.RunTeleportLogic);
+                        }
                     }
                 }
                 else

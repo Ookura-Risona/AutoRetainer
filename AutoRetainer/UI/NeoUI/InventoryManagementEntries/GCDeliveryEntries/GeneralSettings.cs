@@ -36,5 +36,7 @@ public sealed unsafe class GeneralSettings : InventoryManagementBase
         .InputInt(150f, "Ventures remaining to trigger delivery, less or equal", () => ref C.FullAutoGCDeliveryDeliverOnVentureLessThan)
         .Unindent()
         .Checkbox("Use Priority seal allowance, if possible", () => ref C.FullAutoGCDeliveryUseBuffItem)
+        .Checkbox("Use Free Company seal buff, if possible", () => ref C.FullAutoGCDeliveryUseBuffFCAction)
+        .Checkbox("Teleport back to house/inn after delivery", () => ref C.TeleportAfterGCExchange)
         ;
 }

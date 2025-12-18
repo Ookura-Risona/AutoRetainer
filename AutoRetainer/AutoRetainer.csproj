@@ -2,11 +2,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>Puni.sh</Authors>
-		<Version>4.5.2.1</Version>
+		<Version>4.5.5.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net9.0-windows7.0</TargetFramework>
+		<TargetFramework>net10.0-windows7.0</TargetFramework>
 		<Platforms>x64</Platforms>
 		<LangVersion>preview</LangVersion>
 		<DalamudLibPath>$(appdata)\XIVLauncherCN\addon\Hooks\dev\</DalamudLibPath>
@@ -22,6 +22,7 @@
 		<NoWarn>CS1591;CS0419</NoWarn>
       <Deterministic>true</Deterministic>
       <CustomCS>false</CustomCS>
+      <UseWindowsForms>true</UseWindowsForms>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -69,7 +70,9 @@
     </ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CsvHelper" Version="33.1.0" />
 		<PackageReference Include="DalamudPackager" Version="2.1.13" />
+		<PackageReference Include="MessagePack" Version="3.1.4" />
 		<PackageReference Include="NotificationMasterAPI" Version="1.0.0.1" />
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>

@@ -1,7 +1,16 @@
 ﻿using AutoRetainer.Internal;
 using AutoRetainer.Modules.Voyage;
+using AutoRetainer.Modules.Voyage.VoyageCalculator;
+using AutoRetainer.UI.Windows;
 using AutoRetainerAPI.Configuration;
+using Dalamud.Game;
+using ECommons;
+using ECommons.Interop;
 using ECommons.MathHelpers;
+using Lumina.Excel.Sheets;
+using System.IO;
+using System.Windows.Forms;
+using OpenFileDialog = ECommons.Interop.OpenFileDialog;
 using VesselDescriptor = (ulong CID, string VesselName);
 
 namespace AutoRetainer.UI.NeoUI;
@@ -23,6 +32,16 @@ public class DeployablesTab : NeoUIEntry
         .Checkbox($"访问远航控制面板时重新派遣舰船", () => ref C.SubsAutoResend2)
         .Checkbox($"重新派遣前完成所有舰船", () => ref C.FinalizeBeforeResend)
         .Checkbox($"在远航探索UI中隐藏飞空艇", () => ref C.HideAirships)
+
+        .Section("Plans")
+        .Widget(SubmarineUnlockPlanUI.DrawButtonText, x =>
+        {
+            SubmarineUnlockPlanUI.DrawButton();
+        })
+        .Widget(SubmarinePointPlanUI.DrawButtonText, x =>
+        {
+            SubmarinePointPlanUI.DrawButton();
+        })
 
         .Section("警报设置")
         .Checkbox($"启用的舰船数量少于可能数量", () => ref C.AlertNotAllEnabled)
@@ -69,7 +88,62 @@ public class DeployablesTab : NeoUIEntry
         .Section("批量配置更改")
         .Widget(MassConfigurationChangeWidget)
         .Section("注册、部件和计划自动化")
-        .Widget(AutomatedSubPlannerWidget);
+        .Widget(AutomatedSubPlannerWidget)
+        .Section("Export character and submarine list to CSV")
+        .Widget(() =>
+        {
+            ImGuiEx.FilteringCheckbox("Export only characters enabled for multi mode (otherwise - all)", out var exportEnabledCharas);
+            ImGuiEx.FilteringCheckbox("Export only enabled submarines (otherwise - all)", out var exportEnabledSubs);
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.FileExport, "Export"))
+            {
+                string[] headers = ["Name", "Build (1)", "Build (2)", "Build (3)", "Build (4)", "Level (1)", "Level (2)", "Level (3)", "Level (4)", "Route (1)", "Route (2)", "Route (3)", "Route (4)"];
+                List<string[]> data = [];
+                foreach(var x in C.OfflineData)
+                {
+                    if(!x.WorkshopEnabled && exportEnabledCharas) continue;
+                    var entry = "".CreateArray((uint)headers.Length);
+                    entry[0] = x.NameWithWorld;
+                    var list = x.GetVesselData(VoyageType.Submersible);
+                    if(list.Count == 0) continue;
+                    int i = 0;
+                    foreach(var sub in list)
+                    {
+                        if(exportEnabledSubs && !x.EnabledSubs.Contains(sub.Name)) continue;
+                        var a = x.GetAdditionalVesselData(sub.Name, VoyageType.Submersible); ;
+                        if(a != null)
+                        {
+                            entry[i + 1] = a.GetSubmarineBuild().Trim();
+                            entry[i + 5] = $"{a.Level}.{(int)(a.CurrentExp * 100f / a.NextLevelExp)}";
+                            List<string> points = [];
+                            foreach(var s in a.Points)
+                            {
+                                if(s != 0)
+                                {
+                                    var d = Svc.Data.GetExcelSheet<SubmarineExploration>(ClientLanguage.Japanese).GetRowOrDefault(s);
+                                    if(d != null && d.Value.Location.ToString().Length > 0)
+                                    {
+                                        points.Add(d.Value.Location.ToString());
+                                    }
+                                }
+                            }
+                            entry[i + 9] = $"{points.Join("").Trim()}";
+                            i++;
+                            if(i > 3) break;
+                        }
+                    }
+                    data.Add(entry);
+                }
+                OpenFileDialog.SelectFile(x =>
+                {
+                    var name = x.file;
+                    if(!name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                    {
+                        name = $"{name}.csv";
+                    }
+                    Utils.WriteCsv(name, headers, data);
+                }, title: "Save as...", fileTypes: [("Comma-separated values", ["csv"])], save:true);
+            }
+        });
     }
 
     private HashSet<VesselDescriptor> SelectedVessels = [];
@@ -94,7 +168,7 @@ public class DeployablesTab : NeoUIEntry
                 if(search.Length > 0 && !$"{x.Name}@{x.World}".Contains(search, StringComparison.OrdinalIgnoreCase)) continue;
                 if(x.OfflineSubmarineData.Count > 0)
                 {
-                    ImGuiEx.PushID(x.CID.ToString());
+                    ImGui.PushID(x.CID.ToString());
                     ImGuiEx.CollectionCheckbox(Censor.Character(x.Name, x.World), x.OfflineSubmarineData.Select(v => (x.CID, v.Name)), SelectedVessels);
                     ImGui.Indent();
                     foreach(var v in x.OfflineSubmarineData)
@@ -334,14 +408,14 @@ public class DeployablesTab : NeoUIEntry
                 ImGui.Text("等级范围:");
                 ImGui.SameLine();
                 ImGuiEx.SetNextItemWidthScaled(60f);
-                ImGuiEx.PushID("##minlvl");
+                ImGui.PushID("##minlvl");
                 ImGui.DragInt($"##minlvl{entry.GUID}", ref entry.MinLevel, 0.1f);
                 ImGui.PopID();
                 ImGui.SameLine();
                 ImGuiEx.Text($"-");
                 ImGuiEx.SetNextItemWidthScaled(60f);
                 ImGui.SameLine();
-                ImGuiEx.PushID("##maxlvl");
+                ImGui.PushID("##maxlvl");
                 ImGui.DragInt($"##maxlvl{entry.GUID}", ref entry.MaxLevel, 0.1f);
                 ImGui.PopID();
 

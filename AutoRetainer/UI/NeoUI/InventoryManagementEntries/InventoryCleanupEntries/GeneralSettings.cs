@@ -1,5 +1,6 @@
 ﻿using AutoRetainer.Internal.InventoryManagement;
 using ECommons.GameHelpers;
+using TerraFX.Interop.Windows;
 
 namespace AutoRetainer.UI.NeoUI.InventoryManagementEntries.InventoryCleanupEntries;
 public class GeneralSettings : InventoryManagementBase
@@ -11,6 +12,9 @@ public class GeneralSettings : InventoryManagementBase
         Builder = InventoryCleanupCommon.CreateCleanupHeaderBuilder()
             .Section(Name)
             .Checkbox($"Auto-open venture coffers", () => ref InventoryCleanupCommon.SelectedPlan.IMEnableCofferAutoOpen, "Multi Mode only. Before logging out, all coffers will be opened unless your inventory space is too low.")
+            .Indent()
+            .InputInt(100f, "Maximum to open at once", () => ref InventoryCleanupCommon.SelectedPlan.MaxCoffersAtOnce)
+            .Unindent()
             .Checkbox($"Enable selling items to retainer", () => ref InventoryCleanupCommon.SelectedPlan.IMEnableAutoVendor, "When AutoRetainer checks resents retainers to ventures, items will be sold according to Inventory Cleanup plan.")
             .Checkbox($"Enable selling items to housing NPC", () => ref InventoryCleanupCommon.SelectedPlan.IMEnableNpcSell, "When AutoRetainer enters a house, items will be sold according to the Inventory Cleanup plan. A housing vendor that supports item selling must be placed near the house entrance (not the workshop entrance)—you should be able to interact with the NPC immediately after entering.")
             .Indent()
@@ -24,6 +28,14 @@ public class GeneralSettings : InventoryManagementBase
             })
             .Unindent()
             .Checkbox($"Auto-desynth items", () => ref InventoryCleanupCommon.SelectedPlan.IMEnableItemDesynthesis)
+            .Indent()
+            .Widget("Armory chest: ", t =>
+            {
+                ImGuiEx.TextV(t);
+                ImGui.SameLine();
+                ImGuiEx.RadioButtonBool("Desynthese", "Skip", ref InventoryCleanupCommon.SelectedPlan.IMEnableItemDesynthesisFromArmory, true);
+            })
+            .Unindent()
             .Checkbox($"Enable context menu integration", () => ref InventoryCleanupCommon.SelectedPlan.IMEnableContextMenu)
             .Checkbox($"Allow selling/discarding items from Armory Chest", () => ref InventoryCleanupCommon.SelectedPlan.AllowSellFromArmory)
             .Checkbox($"Demo mode", () => ref InventoryCleanupCommon.SelectedPlan.IMDry, "Do not sell/discard items, instead print in chat what would be sold")

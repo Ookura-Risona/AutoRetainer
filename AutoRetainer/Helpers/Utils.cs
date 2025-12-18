@@ -2,14 +2,19 @@
 using AutoRetainer.Modules.Voyage;
 using AutoRetainer.Scheduler.Handlers;
 using AutoRetainer.Scheduler.Tasks;
+using AutoRetainer.UI.NeoUI.Experiments;
 using AutoRetainerAPI.Configuration;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Dalamud.Bindings.ImPlot;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Memory;
 using Dalamud.Utility;
+using ECommons.Automation;
 using ECommons.Events;
 using ECommons.ExcelServices;
 using ECommons.ExcelServices.TerritoryEnumeration;
@@ -26,9 +31,14 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 using System;
+using System.Globalization;
+
+using System.IO;
+
 
 //using OtterGui.Text.EndObjects;
 using System.Text.RegularExpressions;
+using TerraFX.Interop.Windows;
 using CharaData = (string Name, ushort World);
 using GrandCompany = ECommons.ExcelServices.GrandCompany;
 
@@ -40,6 +50,85 @@ public static unsafe class Utils
     public static bool IsCN => Svc.ClientState.ClientLanguage == (ClientLanguage)4;
     public static int FCPoints => *(int*)((nint)AgentModule.Instance()->GetAgentByInternalId(AgentId.FreeCompanyCreditShop) + 256);
     public static float AnimationLock => Player.AnimationLock;
+
+    public static bool CanEnqueueShutdown()
+    {
+        if(TryGetAddonMaster<AddonMaster._TitleMenu>(out var m) && m.IsAddonReady) return true;
+        if(Player.Interactable && !GenericHelpers.IsOccupied()) return true;
+        return false;
+    }
+
+    public static void WriteCsv(string filePath, string[] columnNames, List<string[]> rows)
+    {
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = true
+        };
+
+        using var writer = new StreamWriter(filePath);
+        using var csv = new CsvWriter(writer, config);
+        foreach(var col in columnNames)
+        {
+            csv.WriteField(col);
+        }
+        csv.NextRecord();
+
+        foreach(var row in rows)
+        {
+            foreach(var field in row)
+            {
+                csv.WriteField(field);
+            }
+            csv.NextRecord();
+        }
+    }
+
+    public static void EnqueueShutdown()
+    {
+        if(!Svc.ClientState.IsLoggedIn)
+        {
+            P.TaskManager.Enqueue(() =>
+            {
+                if(TryGetAddonMaster<AddonMaster._TitleMenu>(out var m) && m.IsAddonReady)
+                {
+                    if(EzThrottler.Throttle("ShutdownGame", 5000))
+                    {
+                        m.Exit();
+                    }
+                }
+            });
+            P.TaskManager.EnqueueDelay(30000);
+        }
+        else
+        {
+            P.TaskManager.Enqueue(() =>
+            {
+                if(Player.Interactable && !IsOccupied())
+                {
+                    if(EzThrottler.Throttle("SendChat"))
+                    {
+                        Chat.ExecuteCommand("/shutdown");
+                        return true;
+                    }
+                }
+                return false;
+            });
+            P.TaskManager.Enqueue(() =>
+            {
+                var yesno = Utils.GetSpecificYesno(Lang.LogOutAndExitGame);
+                if(yesno != null)
+                {
+                    if(EzThrottler.Throttle("ClickExit"))
+                    {
+                        new AddonMaster.SelectYesno((nint)yesno).Yes();
+                        return true;
+                    }
+                }
+                return false;
+            });
+            P.TaskManager.EnqueueDelay(30000);
+        }
+    }
 
     public static uint[] WeaponsUICategories
     {
@@ -54,6 +143,74 @@ public static unsafe class Utils
             return field;
         }
     } = null;
+
+    public static bool IsLifestreamInstalled()
+    {
+        return Svc.PluginInterface.InstalledPlugins.Any(x => x.InternalName == "Lifestream" && x.IsLoaded && x.Version >= new Version("2.5.3.0"));
+    }
+
+    public static bool CanShutdownForSubs()
+    {
+        return C.OfflineData.Where(x => x.WorkshopEnabled && !x.ExcludeWorkshop).All(x => !x.AreAnyEnabledVesselsReturnInNext((int)(C.HoursForShutdown * 60f * 60f)));
+    }
+
+    public static void DrawLifestreamWarning(string function)
+    {
+        if(!Utils.IsLifestreamInstalled())
+        {
+            ImGuiEx.TextWrapped(EColor.RedBright, $"Lifestream plugin is not installed or not enabled. You have to install and enable it in order for {function} to work. Click here if you would like to open an instruction on how to do so.");
+            if(ImGuiEx.HoveredAndClicked())
+            {
+                ShellStart("https://github.com/NightmareXIV/Lifestream/?tab=readme-ov-file#installation");
+            }
+        }
+    }
+
+    public static void NotifyIfLifestreamIsNotInstalled(string function = "this function")
+    {
+        ref var notification = ref Ref<IActiveNotification>.Get("Notification");
+        if(!Utils.IsLifestreamInstalled())
+        {
+            if(notification != null)
+            {
+                try
+                {
+                    notification.DismissNow();
+                }
+                catch(Exception e)
+                {
+                    e.LogVerbose();
+                }
+            }
+            notification = Svc.NotificationManager.AddNotification(new()
+            {
+                Title = "Lifestream is not installed",
+                Content = $"Lifestream plugin is required to use {function}. Click here for a guide on how to install it.",
+                InitialDuration = TimeSpan.FromSeconds(60),
+                Type = NotificationType.Error,
+                Minimized = false,
+            });
+            notification.Click += delegate
+            {
+                ShellStart("https://github.com/NightmareXIV/Lifestream/?tab=readme-ov-file#installation");
+                Ref<IActiveNotification>.Get("Notification")?.DismissNow();
+            };
+        }
+    }
+
+    public static void DrawLifestreamAvailabilityIndicator()
+    {
+        ImGuiEx.PluginAvailabilityIndicator([new("Lifestream", new Version("2.5.3.0"))]);
+    }
+
+    public static long GetDaysSinceUtcStart()
+    {
+        DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        DateTime now = DateTime.UtcNow;
+
+        long days = (long)(now - epoch).TotalDays;
+        return days;
+    }
 
     public static uint[] ArmorsUICategories
     {
@@ -212,6 +369,16 @@ public static unsafe class Utils
     {
         public string NameWithWorld => $"{thisRef.Name}@{thisRef.World}";
         public string NameWithWorldCensored => Censor.Character(thisRef.NameWithWorld);
+
+        public void ClearFCData()
+        {
+            thisRef.OfflineAirshipData.Clear();
+            thisRef.OfflineSubmarineData.Clear();
+            thisRef.AdditionalAirshipData.Clear();
+            thisRef.AdditionalSubmarineData.Clear();
+            thisRef.FCID = 0;
+            C.FCData.Where(x => x.Value.HolderChara == thisRef.CID).Each(x => x.Value.HolderChara = 0);
+        }
 
         public object? GetOrderValue(RetainersVisualOrder order)
         {
@@ -1176,7 +1343,7 @@ public static unsafe class Utils
         {
             if((x.ObjectKind == ObjectKind.Housing || x.ObjectKind == ObjectKind.EventObj) && x.Name.ToString().EqualsIgnoreCaseAny(Lang.BellName))
             {
-                var distance = extend && VoyageUtils.Workshops.Contains(Svc.ClientState.TerritoryType) ? 20f : GetValidInteractionDistance(x);
+                var distance = extend && (VoyageUtils.Workshops.Contains(Svc.ClientState.TerritoryType) || Player.TerritoryIntendedUse == TerritoryIntendedUseEnum.Inn) ? 20f : GetValidInteractionDistance(x) ;
                 if(Vector3.Distance(x.Position, Svc.ClientState.LocalPlayer.Position) < distance && x.IsTargetable)
                 {
                     return x;

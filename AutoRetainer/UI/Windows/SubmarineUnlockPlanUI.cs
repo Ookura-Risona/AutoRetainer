@@ -24,6 +24,15 @@ internal unsafe class SubmarineUnlockPlanUI : Window
     internal Dictionary<uint, bool> RouteExploredCache = [];
     internal int NumUnlockedSubs = 0;
 
+    public static readonly string DrawButtonText = "Open Submarine Unlock Plan Editor";
+    public static void DrawButton()
+    {
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.LockOpen, DrawButtonText))
+        {
+            P.SubmarineUnlockPlanUI.IsOpen = true;
+        }
+    }
+
     internal bool IsMapUnlocked(uint map, bool bypassCache = false)
     {
         if(!IsSubDataAvail()) return false;
@@ -182,7 +191,15 @@ internal unsafe class SubmarineUnlockPlanUI : Window
                 {
                     try
                     {
-                        SelectedPlan.CopyFrom(JsonConvert.DeserializeObject<SubmarineUnlockPlan>(Paste()));
+                        var unlockPlan = JsonConvert.DeserializeObject<SubmarineUnlockPlan>(Paste());
+                        if(!unlockPlan.IsModified())
+                        {
+                            Notify.Error("Could not import clipboard content. Is it correct plan?");
+                        }
+                        else
+                        {
+                            SelectedPlan.CopyFrom(unlockPlan);
+                        }
                     }
                     catch(Exception ex)
                     {
@@ -222,7 +239,7 @@ internal unsafe class SubmarineUnlockPlanUI : Window
                     {
                         if(x.Value.Point < 9000)
                         {
-                            ImGuiEx.PushID($"{x.Key}");
+                            ImGui.PushID($"{x.Key}");
                             ImGui.TableNextRow();
                             ImGui.TableNextColumn();
                             var data = Svc.Data.GetExcelSheet<SubmarineExploration>().GetRowOrDefault(x.Key);
@@ -252,7 +269,7 @@ internal unsafe class SubmarineUnlockPlanUI : Window
                 }
                 if(ImGui.CollapsingHeader("显示当前点探索顺序"))
                 {
-                    ImGuiEx.Text(SelectedPlan.GetPrioritizedPointList().Select(x => $"{Svc.Data.GetExcelSheet<SubmarineExploration>().GetRow(x.point).Destination} ({x.justification})").Join("\n"));
+                    ImGuiEx.Text(SelectedPlan.GetPrioritizedPointList().Select(x => $"{Svc.Data.GetExcelSheet<SubmarineExploration>().GetRowOrDefault(x.point)?.Destination} ({x.justification})").Join("\n"));
                 }
             }
             ImGui.EndChild();

@@ -43,7 +43,7 @@ internal static unsafe class MultiModeUI
             if(data.World.IsNullOrEmpty() || data.ExcludeRetainer) continue;
             var search = Ref<string>.Get("SearchChara");
             if(search != "" && !$"{data.Name}@{data.World}".Contains(search, StringComparison.OrdinalIgnoreCase)) continue;
-            ImGuiEx.PushID(data.CID.ToString());
+            ImGui.PushID(data.CID.ToString());
             var rCurPos = ImGui.GetCursorPos();
             var colen = false;
             if(data.Enabled)
@@ -57,6 +57,7 @@ internal static unsafe class MultiModeUI
             }
             if(colen) ImGui.PopStyleColor();
             ImGuiEx.Tooltip($"为此角色启用多角色模式");
+            ImGuiEx.DragDropRepopulate("EnMulti", data.Enabled, ref data.Enabled);
             ImGui.SameLine(0, 3);
             if(ImGuiEx.IconButton(FontAwesomeIcon.DoorOpen))
             {
@@ -117,7 +118,7 @@ internal static unsafe class MultiModeUI
                     colpref = false;
                 }
                 var enabledRetainers = data.GetEnabledRetainers();
-                ImGuiEx.PushID(data.CID.ToString());
+                ImGui.PushID(data.CID.ToString());
 
                 var storePos = ImGui.GetCursorPos();
                 var retainerData = data.RetainerData;
