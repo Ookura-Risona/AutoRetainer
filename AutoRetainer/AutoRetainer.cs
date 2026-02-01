@@ -26,6 +26,7 @@ using ECommons.Reflection;
 using ECommons.Singletons;
 using ECommons.Throttlers;
 using ECommons.UIHelpers.AddonMasterImplementations;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
@@ -120,7 +121,7 @@ public unsafe class AutoRetainer : IDalamudPlugin
 
     internal void SetConfig(Config c)
     {
-        config = c;
+        config = EzConfig.Set<Config>(c);
     }
 
     public void Load()
@@ -382,7 +383,7 @@ public unsafe class AutoRetainer : IDalamudPlugin
         }
         else if(arguments.EqualsIgnoreCaseAny("itemsell"))
         {
-            if(!IsOccupied() && !P.TaskManager.IsBusy)
+            if((!IsOccupied() || TryGetAddonByName<AtkUnitBase>("Shop", out _)) && !P.TaskManager.IsBusy)
             {
                 TaskVendorItems.EnqueueFromCommand();
             }

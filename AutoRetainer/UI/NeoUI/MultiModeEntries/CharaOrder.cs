@@ -47,6 +47,7 @@ public class CharaOrder : NeoUIEntry
                         C.SelectedRetainers.Remove(chr.CID);
                     }
                     ImGuiEx.Tooltip("启用雇员功能");
+                    ImGuiEx.DragDropRepopulate("EnRet", chr.ExcludeRetainer, ref chr.ExcludeRetainer);
                     ImGui.SameLine();
                     if(ImGuiEx.ButtonCheckbox(FontAwesomeIcon.Ship, ref chr.ExcludeWorkshop, inverted: true))
                     {
@@ -55,18 +56,33 @@ public class CharaOrder : NeoUIEntry
                         chr.EnabledAirships.Clear();
                     }
                     ImGuiEx.Tooltip("启用工房/飞艇功能");
+                    ImGuiEx.DragDropRepopulate("EnDep", chr.ExcludeWorkshop, x =>
+                    {
+                        chr.ExcludeWorkshop = x;
+                        if(!x)
+                        {
+                            chr.EnabledSubs.Clear();
+                            chr.EnabledAirships.Clear();
+                        }
+                    });
                     ImGui.SameLine();
                     ImGuiEx.ButtonCheckbox(FontAwesomeIcon.DoorOpen, ref chr.ExcludeOverlay, inverted: true);
                     ImGuiEx.Tooltip("在登录覆盖层显示");
+                    ImGuiEx.DragDropRepopulate("EnLog", chr.ExcludeOverlay, ref chr.ExcludeOverlay);
                     ImGui.SameLine();
                     ImGuiEx.ButtonCheckbox(FontAwesomeIcon.Coins, ref chr.NoGilTrack, inverted: true);
                     ImGuiEx.Tooltip("统计此角色的金币计入总量");
+                    ImGuiEx.DragDropRepopulate("EnGil", chr.NoGilTrack, ref chr.NoGilTrack);
+                    ImGui.SameLine();
+                    ImGuiEx.ButtonCheckbox(FontAwesomeIcon.GasPump, ref chr.AutoFuelPurchase, color:ImGuiColors.TankBlue);
+                    ImGuiEx.Tooltip("允许此角色从工房购买青磷水");
+                    ImGuiEx.DragDropRepopulate("EnFuel", chr.AutoFuelPurchase, ref chr.AutoFuelPurchase);
                     ImGui.TableNextColumn();
                     if(ImGuiEx.IconButton(FontAwesomeIcon.UserMinus))
                     {
                         chr.ClearFCData();
                     }
-                    ImGuiEx.Tooltip("Reset FC data and deployable data for this character. It will regenerate once you log in and access workshop panel.");
+                    ImGuiEx.Tooltip("重置此角色的部队与工房相关数据；登录并访问工房面板后会自动重新生成。");
                     ImGui.SameLine();
                     if(ImGuiEx.IconButton(FontAwesomeIcon.Trash, enabled: ImGuiEx.Ctrl))
                     {

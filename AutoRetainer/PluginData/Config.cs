@@ -144,6 +144,11 @@ internal unsafe class Config
     public ulong LastLoggedInChara = 0;
 
     public bool TeleportAfterGCExchange = true;
+    public bool TeleportAfterGCExchangeMulti = true;
+
+    public int AutoFuelPurchaseLow = 300;
+    public int AutoFuelPurchaseMax = 900;
+    public bool AutoFuelPurchaseOnlyWsUnlocked = false;
 
     internal bool DontReassign
     {
@@ -267,7 +272,6 @@ internal unsafe class Config
     public bool FullAutoGCDeliveryUseBuffFCAction = false;
     public bool FullAutoGCDeliveryDeliverOnVentureExhaust = false;
     public int FullAutoGCDeliveryDeliverOnVentureLessThan = 50;
-    public bool FullAutoGCDeliveryTpBackToHome = false;
     public bool VendorItemAfterVoyage = false;
 
     public bool ShutdownOnSubExhaustion = false;
