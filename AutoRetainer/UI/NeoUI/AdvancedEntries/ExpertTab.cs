@@ -23,6 +23,15 @@ public class ExpertTab : NeoUIEntry
         .InputInt(150f, "AutoRetainer尝试解除卡死前的超时时间(秒)", () => ref C.BailoutTimeout)
 
         .Section("常规设置")
+        .Widget("Skip Inn Login Cutscene", text =>
+        {
+            ImGui.SetNextItemWidth(200);
+            if(ImGuiEx.EnumCombo(text, ref C.CutsceneSkipMode))
+            {
+                S.InnCutsceneSkip.RefreshAccordingToConfig();
+            }
+            ImGuiEx.HelpMarker("Cutscene skip is detectable server-side and increases chance of ban", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
+        })
         .Checkbox($"禁用排序和折叠/展开功能", () => ref C.NoCurrentCharaOnTop)
         .Checkbox($"在插件UI栏显示多角色模式复选框", () => ref C.MultiModeUIBar)
         .SliderIntAsFloat(100f, "雇员菜单延迟(秒)", () => ref C.RetainerMenuDelay.ValidateRange(0, 2000), 0, 2000)

@@ -8,6 +8,7 @@ using AutoRetainerAPI.Configuration;
 using Dalamud.Game.Config;
 using Dalamud.Interface.ImGuiNotification;
 using ECommons.CircularBuffers;
+using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.ExcelServices.TerritoryEnumeration;
 using ECommons.EzSharedDataManager;
@@ -39,7 +40,7 @@ internal static unsafe class MultiMode
 
     internal static Dictionary<ulong, int> CharaCnt = [];
     internal static bool CanHET => Active && CanHETRaw;
-    internal static bool CanHETRaw => ResidentalAreas.List.Contains(Svc.ClientState.TerritoryType) && (TaskNeoHET.GetFcOrPrivateEntranceFromMarkers() != null || TaskNeoHET.GetApartmentEntrance() != null) && (!C.NoTeleportHetWhenNextToBell || Utils.GetReachableRetainerBell(false) == null);
+    internal static bool CanHETRaw => ResidentalAreas.List.Contains((ushort)Svc.ClientState.TerritoryType) && (TaskNeoHET.GetFcOrPrivateEntranceFromMarkers() != null || TaskNeoHET.GetApartmentEntrance() != null) && (!C.NoTeleportHetWhenNextToBell || Utils.GetReachableRetainerBell(false) == null);
 
     internal static void Init()
     {
@@ -165,6 +166,60 @@ internal static unsafe class MultiMode
             if(P.TaskManager.IsBusy || S.LifestreamIPC.IsBusy())
             {
                 return;
+            }
+            if(C.ExitOnSubCompletion)
+            {
+                C.MultiModeType = MultiModeType.Submersibles;
+                C.DisplayMMType = true;
+                var shouldShutdown = C.OfflineData.Where(x => x.WorkshopEnabled && !x.ExcludeWorkshop).All(x => !x.AreAnyEnabledVesselsReturnInNext((int)(C.ExitOnSubCompletionTime * 60f)));
+                if(shouldShutdown)
+                {
+                    Enabled = false;
+                    EzConfig.Save();
+                    {
+                        var sched = new TickScheduler(() =>
+                        {
+                            if(Utils.CanEnqueueShutdown())
+                            {
+                                Utils.EnqueueShutdown();
+                            }
+                        }, 30000);
+                        var hexp = DateTime.Now + TimeSpan.FromSeconds(30);
+                        var notify = Svc.NotificationManager.AddNotification(new()
+                        {
+                            UserDismissable = false,
+                            InitialDuration = TimeSpan.FromSeconds(30),
+                            Minimized = false,
+                            HardExpiry = hexp,
+                            Content = $"Game shutdown down at {hexp}, click to cancel",
+                            RespectUiHidden = false,
+                        });
+                        notify.Click += delegate
+                        {
+                            sched.Dispose();
+                            notify.DismissNow();
+                        };
+                    }
+                    {
+                        var sched = new TickScheduler(() => Environment.Exit(0), 5 * 60 * 1000);
+                        var hexp = DateTime.Now + TimeSpan.FromMinutes(5);
+                        var notify = Svc.NotificationManager.AddNotification(new()
+                        {
+                            UserDismissable = false,
+                            InitialDuration = TimeSpan.FromMinutes(5),
+                            Minimized = false,
+                            HardExpiry = hexp,
+                            Content = $"Forced shutdown down at {hexp}, click to cancel",
+                            RespectUiHidden = false,
+                        });
+                        notify.Click += delegate
+                        {
+                            sched.Dispose();
+                            notify.DismissNow();
+                        };
+                    }
+                    return;
+                }
             }
             if(C.ShutdownOnSubExhaustion)
             {

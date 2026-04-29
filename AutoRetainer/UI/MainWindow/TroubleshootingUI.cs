@@ -17,18 +17,25 @@ public static unsafe class TroubleshootingUI
     {
         ImGuiEx.TextWrapped("本选项卡检查您的配置是否存在常见问题，您可以在联系技术支持前自行解决这些问题。");
 
-        if(IsPluginInstalled("LightlessSync"))
-
         if(!Player.Available)
         {
             ImGuiEx.TextWrapped($"Can not troubleshoot when not logged in.");
             return;
         }
 
+        if(C.CutsceneSkipMode != AutoRetainerAPI.Configuration.CutsceneSkipMode.Never)
+        {
+            Info($"Inn cutscene skip module is set to {C.CutsceneSkipMode}. Inn cutscene will be skipped by AutoRetainer.");
+        }
+
         if(Data == null)
         {
-            ImGuiEx.TextWrapped($"No data available for current character. Access retainer bell, deployables panel or logout to create data.");
-            return;
+            Error($"No data available for current character. Access retainer bell, deployables panel or logout to create data.");
+        }
+
+        if(C.IgnoreGCRankCheck)
+        {
+            Error("Ignore GC rank check is enabled. Disable it for normal plugin operation. (/ays set IgnoreGCRankCheck false)");
         }
 
         if(!Svc.ClientState.ClientLanguage.EqualsAny(ClientLanguage.Japanese, ClientLanguage.German, ClientLanguage.French, ClientLanguage.English))
@@ -95,11 +102,11 @@ public static unsafe class TroubleshootingUI
             {
                 Error("当前角色已被完全排除在AutoRetainer处理之外。请前往设置→排除项进行更改。");
             }
-            if(Data.ExcludeRetainer)
+            if(Data?.ExcludeRetainer == true)
             {
                 Error("当前角色已被排除在雇员列表外。请前往设置→排除项进行更改。");
             }
-            if(Data.ExcludeWorkshop)
+            if(Data?.ExcludeWorkshop == true)
             {
                 Error("当前角色已被排除在远航探索列表外。请前往设置→排除项进行更改。");
             }
