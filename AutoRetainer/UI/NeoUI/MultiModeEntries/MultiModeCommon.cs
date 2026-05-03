@@ -28,6 +28,7 @@ public class MultiModeCommon : NeoUIEntry
             ImGuiEx.Combo(x, ref C.AutoLogin, ["", "~", .. names], names: dict);
         })
         .SliderInt(150f, "登录延迟", () => ref C.AutoLoginDelay.ValidateRange(0, 60), 0, 20, "设置适当延迟让插件完全加载后再登录，同时给自己留出取消登录的时间")
+        .Checkbox("在插件重新加载后保持多角色模式启用", () => ref C.PreserveMultiModeState)
 
         .Section("库存警告")
         .InputInt(100f, $"雇员列表：剩余库存槽位警告", () => ref C.UIWarningRetSlotNum.ValidateRange(2, 1000))
