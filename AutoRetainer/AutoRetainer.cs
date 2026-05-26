@@ -22,6 +22,7 @@ using ECommons.ExcelServices;
 using ECommons.ExcelServices.TerritoryEnumeration;
 using ECommons.EzIpcManager;
 using ECommons.EzSharedDataManager;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.IPC;
 using ECommons.IPC.Subscribers;
