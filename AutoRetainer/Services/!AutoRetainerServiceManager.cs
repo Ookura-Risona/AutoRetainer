@@ -22,4 +22,5 @@ public static class AutoRetainerServiceManager
     public static IpcConfigValuesProvider IpcConfigValuesProvider;
     public static InnCutsceneSkip InnCutsceneSkip;
     public static AetherBagsManager AetherBagsManager;
+    public static PluginTerminator PluginTerminator;
 }
