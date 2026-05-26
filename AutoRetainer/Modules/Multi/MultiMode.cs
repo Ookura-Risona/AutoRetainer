@@ -292,9 +292,10 @@ internal static unsafe class MultiMode
                     return;
                 }
             }
+            var eligibleForGcDelivery = CanExpertDeliver() && EzThrottler.Check($"ExpertDeliver_{Data.Identity}");
             if(ProperOnLogin.PlayerPresent && !P.TaskManager.IsBusy)
             {
-                if(!Utils.IsInventoryFree())
+                if(!Utils.IsInventoryFree() && !eligibleForGcDelivery)
                 {
                     Data.Enabled = false;
                 }
@@ -304,7 +305,7 @@ internal static unsafe class MultiMode
                 && EzThrottler.Check("GcBusy"))
             {
                 Synchronize = false;
-                if(CanExpertDeliver() && !IsOccupied() && EzThrottler.Check($"ExpertDeliver_{Data.Identity}"))
+                if(eligibleForGcDelivery && !IsOccupied())
                 {
                     TaskDeliverItems.Enqueue();
                     EzThrottler.Throttle("GcBusy", 60000, true);
@@ -427,11 +428,6 @@ internal static unsafe class MultiMode
         }
     }
 
-    internal static bool CheckInventoryValidity()
-    {
-        return Svc.ClientState.LocalPlayer.HomeWorld.RowId == Svc.ClientState.LocalPlayer.CurrentWorld.RowId && Utils.GetVenturesAmount() >= Data.GetNeededVentureAmount() && Utils.IsInventoryFree();
-    }
-
     internal static IEnumerable<OfflineCharacterData> GetEnabledOfflineData()
     {
         return C.OfflineData.Where(x => x.Enabled).Where(x => !x.IsLockedOut());
@@ -539,13 +535,21 @@ internal static unsafe class MultiMode
                         CharaCnt.Clear();
                     }
                     P.TaskManager.Enqueue(() => Player.Interactable && IsScreenReady());
-                    if(data != null)
+                    if(C.DontLogout)
                     {
-                        P.TaskManager.Enqueue(() => Lifestream.ChangeCharacter(data.Name, data.World));
+                        P.TaskManager.Enqueue(() => DuoLog.Warning($"Would change character to {data?.NameWithWorldCensored ?? "Logout"}"));
+                        P.TaskManager.EnqueueDelay(99999999);
                     }
                     else
                     {
-                        P.TaskManager.Enqueue(() => Lifestream.Logout());
+                        if(data != null)
+                        {
+                            P.TaskManager.Enqueue(() => Lifestream.ChangeCharacter(data.Name, data.World));
+                        }
+                        else
+                        {
+                            P.TaskManager.Enqueue(() => Lifestream.Logout());
+                        }
                     }
                     return true;
                 }
