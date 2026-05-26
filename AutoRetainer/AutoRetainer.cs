@@ -566,6 +566,7 @@ public unsafe class AutoRetainer : IDalamudPlugin
         MultiMode.Tick();
         NotificationHandler.Tick();
         NewYesAlreadyManager.Tick();
+        S.AetherBagsManager.OnUpdate();
         ArtisanManager.ArtisanTick();
         FPSManager.Tick();
         PriorityManager.Tick();
