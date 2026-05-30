@@ -24,6 +24,7 @@
       <CustomCS>false</CustomCS>
       <UseWindowsForms>true</UseWindowsForms>
       <OutputPath>bin/Release</OutputPath>
+      <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
     <!--Import Project="_build\BuildExtensions.targets" /-->
@@ -33,6 +34,7 @@
 		<ProjectReference Include="..\ECommons.IPC\ECommons.IPC\ECommons.IPC.csproj" />
     <ProjectReference Include="..\ECommons\ECommons\ECommons.csproj">
     </ProjectReference>
+    <PackageReference Include="DalamudPackager" Version="15.0.0" />
     <PackageReference Include="ECommons" Version="*">
         <ExcludeAssets>runtime;build;native;contentfiles;analyzers</ExcludeAssets>
         <PrivateAssets>all</PrivateAssets>
