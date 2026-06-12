@@ -1,12 +1,12 @@
 ﻿{
-    "Author": "кайт машина (Puni.sh), NightmareXIV",
-    "Name": "AutoRetainer",
-    "InternalName": "AutoRetainer",
-    "Punchline": "在舒适的床上分配任务给你的雇员。",
-    "Description": "在舒适的床上分配任务给你的雇员。",
-    "ApplicableVersion": "any",
-    "RepoUrl": "https://github.com/Ookura-Risona/AutoRetainer",
-    "DalamudApiLevel": 15,
-    "LoadPriority": 0,
-    "IconUrl": "https://s3.puni.sh/media/plugin/24/icon-drb6aywk5m9.png"
+  "Author": "NightmareXIV, kawaii",
+  "Name": "AutoRetainer",
+  "InternalName": "AutoRetainer",
+  "Punchline": "Collect and assign ventures to your retainers from the comfort of your bed.",
+  "Description": "Collect and assign ventures to your retainers from the comfort of your bed.",
+  "ApplicableVersion": "any",
+  "RepoUrl": "https://github.com/Ookura-Risona/AutoRetainer",
+  "DalamudApiLevel": 15,
+  "LoadPriority": 0,
+  "IconUrl": "https://s3.puni.sh/media/plugin/24/icon-drb6aywk5m9.png"
 }
